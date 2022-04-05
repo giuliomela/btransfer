@@ -73,7 +73,7 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
     wb_series <- wb_series[, c("iso3c", "date", "NY.GDP.PCAP.PP.KD")]
 
 
-    # assigning epsilon according to income levels
+    # assigning epsilon according to income levels and computing transfer factor (adjusted for inflation)
 
     bt_fct <- merge(wb_series, epsilon, all.x = TRUE)
 
@@ -81,17 +81,92 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
     bt_fct <- subset(bt_fct, date == policy_yr)
 
-    bt_fct <- within(bt_fct, {
+    bt_fct$epsilon <- as.numeric(bt_fct$epsilon)
 
-      bt_fct <- (NY.GDP.PCAP.PP.KD / study_site_gdp)^epsilon
+    bt_fct <- within(bt_fct, { # value transfer factors adjusted for inflation
+
+      bt_fct <- ((NY.GDP.PCAP.PP.KD / study_site_gdp)^epsilon) * gdp_defl_fct
 
     })
 
+ if (currency == "EUR") {
+
+   bt_fct
+
+ } else if (currency == "USD") {
+
+   bt_fct$bt_fct <- bt_fct$bt_fct* us_euro
+
+   bt_fct
+ }
 
 
+  } else if (aggregate == "yes") {
 
-  }
+    # downloading gdp (PPP) and population data to compute aggregate's gdp per capita.
+    # donwloading also GNI per capita (current USD) to identify appropriate epsilon
 
+    # downloading gdp per capita data of the study site
+
+    study_site_gdp <- wbstats::wb_data(c("NY.GDP.PCAP.PP.KD"),
+                     country = iso_study,
+                     start_date = study_yr, end_date = policy_yr)
+
+    study_site_gdp <- subset(study_site_gdp, date == study_yr & iso3c == study_site)$NY.GDP.PCAP.PP.KD
+
+    wb_series <- wbstats::wb_data(c("NY.GDP.MKTP.PP.KD", "SP.POP.TOTL"),
+                                  country = iso_policy,
+                                  start_date = study_yr, end_date = policy_yr)
+
+    gdp_pop <- wb_series[, c("iso3c", "date", "NY.GDP.MKTP.PP.KD",
+                               "SP.POP.TOTL")]
+
+    bt_fct <- merge(gdp_pop, epsilon, all.x = TRUE)
+
+    bt_fct$epsilon <- as.numeric(bt_fct$epsilon)
+
+    bt_fct_l <- split(bt_fct, bt_fct$date)
+
+    bt_fct_l <- lapply(bt_fct_l, function (x) {
+
+      data.frame(date = unique(x$date),
+                 NY.GDP.MKTP.PP.KD = sum(x$NY.GDP.MKTP.PP.KD),
+                 SP.POP.TOTL = sum(x$SP.POP.TOTL),
+                 epsilon = weighted.mean(x$epsilon, x$SP.POP.TOTL))
+    })
+
+    bt_fct <- do.call("rbind", bt_fct_l)
+
+    bt_fct <- within(bt_fct, {
+
+      gdp_capita <- NY.GDP.MKTP.PP.KD / SP.POP.TOTL
+      NY.GDP.MKTP.PP.KD <- NULL
+      SP.POP.TOTL <- NULL
+
+    })
+
+    # calculating trasnfer factors
+
+    bt_fct <- subset(bt_fct, date == policy_yr)
+
+    bt_fct <- within(bt_fct, { # value transfer factors adjusted for inflation
+
+      bt_fct <- ((gdp_capita / study_site_gdp)^epsilon) * gdp_defl_fct
+
+    })
+
+    if (currency == "EUR") {
+
+      bt_fct
+
+    } else if (currency == "USD") {
+
+      bt_fct$bt_fct <- bt_fct$bt_fct* us_euro
+
+      bt_fct
+    }
+
+  }else if (aggregate == "row")
 
 
 }
