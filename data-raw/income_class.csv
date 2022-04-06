@@ -1,5 +1,5 @@
 income_level;income_level_iso3c;min;max;epsilon
-low;LIC;;1046;1.2
+low;LIC;0;1046;1.2
 lower-middle;LMC;1046;4095;0.8
 upper-middle;UMC;4095;12695;0.5
-high;HIC;12695;;0.2
+high;HIC;12695;Inf;0.2
