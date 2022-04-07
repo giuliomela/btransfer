@@ -52,7 +52,7 @@ environmental and health economics.
 This function allows the calculation of transfer factors to be used to perform
 unit value transfers with income adjustments. Such factors are scalars that must be
 multiplied by the original value. The function allows the user to select the
-study site (country in which the original stusy that identified the value to be
+study site (country in which the original study that identified the value to be
 transferred was carried out) and the policy sites. The latter can be a group of
 countries or an aggregate of countries. Study and policy years can also be selected,
 as well as whether the original estimate is expressed in US dollars or euro (default).

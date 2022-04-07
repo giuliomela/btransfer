@@ -1,0 +1,18 @@
+#' World Bank data to be used in unit value transfer - growth rates
+#'
+#' This dataset contains annual growth rates for the indicators used in unit
+#' value transfer. Such data are used to "forecast" future indicator lavels to
+#' perform benefit transfer to years in the future.
+#'
+#' @format A tibble
+#' \describe{
+#' \item{iso3c}{Country code (Iso 3 digits)}
+#' \item{country}{Country name in English}
+#' \item{year}{year}
+#' \item{gdp_growth}{Annual real GDP growth (WB code: NY.GNP.MKTP.KD.ZG)}
+#' \item{gdp_capita_growth}{Annual real GDP per capita growth (WB code: NY.GDP.PCAP.KD.ZG)}
+#' \item{gni_growth}{Annual real GNI growth (WB code: NY.GNP.MKTP.KD.ZG)}
+#' \item{pop_growth}{Annual population growth rate (Wb code: SP.POP.GROW)}
+#' }
+#' @source \url{https://data.worldbank.org/}
+"wb_series"
