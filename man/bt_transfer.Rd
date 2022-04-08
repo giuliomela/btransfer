@@ -16,12 +16,14 @@ bt_transfer(
 \arguments{
 \item{study_site}{A single string. The name of the country in which the original
 study that identified the values to be transferred was carried out. The name can be
-provided in any language (first letter always capitalized). The default value is \code{EUU}
-which statnds for the European Union.}
+provided in any language (first letter always capitalized). It is possible to choose
+also two aggregates: the European Union (\code{EUU}) and the world as a whole (\code{WLD}).
+The default value is \code{EUU}.}
 
 \item{policy_site}{A string vector. Names of the countries to which the value must be
 transferred. It can be either a single string or a vector. Names can be provided in
-any language.}
+any language. If the policy site is the European Union or the world \code{EUU} and
+\code{WLD} must be used respectively.}
 
 \item{study_yr}{Numeric. The year in which the original values was estimated. Default
 is 2016, year about which the estimates provided by the European Commission's Handbook
@@ -77,4 +79,6 @@ policy_site = c("Italia", "Allemagne", "France", "España", "Polska"),
 currency = "USD")
 bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"), aggregate = "yes")
 bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"), aggregate = "row")
+bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"), policy_yr = 2030,
+aggregate = "row")
 }

@@ -1,5 +1,7 @@
 ## code to prepare `DATASET` dataset goes here
 
+latest_yr <- 2020
+
 # loading income classification
 income_class <- read.csv(here::here("data-raw/income_class.csv"), sep = ";")
 
@@ -13,6 +15,22 @@ names(wb_series) <- c("iso2c", "iso3c", "country", "year", "gdp_defl", "gdp", "g
                       "gni", "exc_rate", "pop")
 
 wb_series <- wb_series[, -1]
+
+# expressing gni in USD at the price levels by the WB for latest income classification
+
+defl_fct <- subset(wb_series, iso3c == "USA", select = c(year, gdp_defl))
+
+defl_latest_yr <- defl_fct[defl_fct$year == latest_yr, ]$gdp_defl
+
+defl_fct$defl_fct <- defl_latest_yr / defl_fct$gdp_defl
+
+defl_fct$gdp_defl <- NULL
+
+wb_series <- merge(wb_series, defl_fct)
+
+wb_series$gni <- wb_series$gni * wb_series$defl_fct
+
+wb_series$defl_fct <- NULL
 
 # downloading wb data growth rates (for benefit transfers to the future)
 

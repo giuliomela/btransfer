@@ -24,7 +24,7 @@ A tibble
 \item{gdp_defl}{GDP deflator (WB code: NY.GDP.DEFL.ZS)}
 \item{gdp}{GDP at constant prices PPP (WB code: NY.GDP.MKTP.PP.KD)}
 \item{gdp_capita}{GDP per capita at constant prices PPP (WB code: NY.GDP.PCAP.PP.KD)}
-\item{gni}{GNI at current prices, Atlas method (Wb code: NY.GNP.ATLS.CD)}
+\item{gni}{GNI at constant prices (converted from current with US GDP deflator, base year = yea rused by the WB for income classification), Atlas method (Wb code: NY.GNP.ATLS.CD)}
 \item{exc_rate}{Exchange rate, USD per LCU (WB code: PA.NUS.FCRF)}
 \item{pop}{Total population (WB code: SP.POP.TOTL)}
 }

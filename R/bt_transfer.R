@@ -25,11 +25,13 @@
 #'
 #' @param study_site A single string. The name of the country in which the original
 #' study that identified the values to be transferred was carried out. The name can be
-#' provided in any language (first letter always capitalized). The default value is \code{EUU}
-#' which statnds for the European Union.
+#' provided in any language (first letter always capitalized). It is possible to choose
+#' also two aggregates: the European Union (\code{EUU}) and the world as a whole (\code{WLD}).
+#' The default value is \code{EUU}.
 #' @param policy_site A string vector. Names of the countries to which the value must be
 #' transferred. It can be either a single string or a vector. Names can be provided in
-#' any language.
+#' any language. If the policy site is the European Union or the world \code{EUU} and
+#' \code{WLD} must be used respectively.
 #' @param study_yr Numeric. The year in which the original values was estimated. Default
 #' is 2016, year about which the estimates provided by the European Commission's Handbook
 #' on the external cost of the transport sector refer to.
@@ -53,8 +55,18 @@
 #' currency = "USD")
 #' bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"), aggregate = "yes")
 #' bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"), aggregate = "row")
+#' bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"), policy_yr = 2030,
+#' aggregate = "row")
 bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, policy_yr = 2019,
                          aggregate = "no", currency = "EUR") {
+
+  # veryfing the call is correct (error messages provided if not)
+
+  if(policy_site == "WLD" & aggregate %in% c("yes", "row"))
+    stop("If world is selected as policy site, aggregate must be set to no")
+
+  if(policy_site == "EUU" & aggregate == "yes")
+    stop("If the EU is selected as policy site, aggregate must be set to either no or row")
 
   # defining whether the value transfer is to be performed for a year in the future or not
 
@@ -74,15 +86,21 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
   # identifying iso3c codes of provided study and policy sites
 
-  if (study_site == "EUU") {
+  if (study_site %in% c("EUU", "WLD")) {
 
     iso_study <- study_site
-
-    iso_policy <- countrycode::countryname(policy_site, "iso3c")
 
   } else {
 
     iso_study <- countrycode::countryname(study_site, "iso3c")
+
+  }
+
+  if (policy_site %in% c("EUU", "WLD")) {
+
+    iso_policy <- policy_site
+
+  } else {
 
     iso_policy <- countrycode::countryname(policy_site, "iso3c")
 
@@ -96,7 +114,7 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
   epsilon$epsilon <- as.numeric(epsilon$epsilon)
 
-  # adding epsilon for the EUU
+  # adding epsilon for the EUU and the
 
   epsilon[nrow(epsilon) + 1,] = c("EUU", 0.2)
 
@@ -214,16 +232,34 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
     } else { # if the policy year is not in the future
 
-    gdp_capita <- subset(wb_series, iso3c %in% iso_policy & year == policy_yr,
+      bt_fct <- subset(wb_series, iso3c %in% iso_policy & year == policy_yr,
                          select = c(iso3c, year, gdp_capita))
 
     # assigning epsilon according to income levels and computing transfer factor (adjusted for inflation)
 
-    bt_fct <- merge(gdp_capita, epsilon, all.x = TRUE)
+    if (iso_policy == "WLD") {
+
+      gni_capita_wld <- subset(wb_series, iso3c == iso_policy & year == policy_yr)
+
+      gni_capita_wld <- gni_capita_wld$gni /gni_capita_wld$pop
+
+      epsilon_agg <- income_class
+
+      epsilon_agg$gni_wld <- ifelse(gni_capita_wld < income_class$max & gni_capita_wld >= income_class$min,
+                                    TRUE, FALSE)
+      bt_fct$epsilon <- epsilon_agg[epsilon_agg$gni_wld == TRUE, ]$epsilon
+
+      bt_fct$year <- NULL
+
+    } else {
+
+    bt_fct <- merge(bt_fct, epsilon, all.x = TRUE)
 
     bt_fct$epsilon <- as.numeric(bt_fct$epsilon)
 
     bt_fct$year <- NULL
+
+    }
 
     }
 
