@@ -40,8 +40,9 @@
 #' factor is calculated for the aggregate made up by the countries selected via \code{policy_site}.
 #' If \code{row} a transfer factor is calculated for the aggregate "rest of the world" (world
 #' minus countries selected via \code{policy_site}).
-#' @param currency A single string. It can assume two values: \code{EUR} (the default) or
-#' \code{USD}. It refers to the currency in which the original values is expressed.
+#' @param currency A single string. It can assume three values: \code{EUR} (the default),
+#' \code{USD} or \code{LCU}. It refers to the currency in which the original values is expressed.
+#' In case \code{LCU} is chosen, the GDP deflator and the currency considered are those of the study site.
 #' @return A data frame containing all parameters used and the transfer factor (bt_fct), which
 #' is the scalar which the original value must be multiplied by to perform the transfer. Such
 #' factor is already adjusted for inflation.
@@ -129,6 +130,26 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
     us_euro <- subset(wb_series, iso3c == "EMU" &
                         year == ifelse(policy_yr > latest_av_yr,
                                        latest_av_yr, policy_yr))$exc_rate
+
+  } else if (currency == "LCU") { # in case the currency of the primary estimate is in LCU
+
+    gdp_defl_study <- subset(wb_series, iso3c == iso_study & year == study_yr)$gdp_defl
+
+    gdp_defl_fct <- subset(wb_series, iso3c == iso_study &
+                             year == ifelse(policy_yr > latest_av_yr,
+                                            latest_av_yr, policy_yr))$gdp_defl / gdp_defl_study
+
+    # converting LCU in USD and finally in EUR
+
+    lcu_us <- subset(wb_series, iso3c == iso_study &
+                       year == ifelse(policy_yr > latest_av_yr,
+                                      latest_av_yr, policy_yr))$exc_rate
+
+    us_euro <- subset(wb_series, iso3c == "EMU" &
+                        year == ifelse(policy_yr > latest_av_yr,
+                                       latest_av_yr, policy_yr))$exc_rate
+
+    us_euro <- lcu_us * us_euro
 
     }
 
@@ -342,34 +363,29 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
     } else { # if the policy year is NOT in the future (usually latest year with available data)
 
-    gdp_pop_wld <- subset(wb_series, iso3c == "WLD" & year == policy_yr)
+    gdp_pop <- subset(wb_series, iso3c %in% c(iso_policy, "WLD") & year == policy_yr)
 
-    gdp_pop <-  subset(wb_series, iso3c %in% iso_policy & year == policy_yr)
+    gdp_pop <- within(gdp_pop, {
 
-    gdp_pop <- data.frame(gdp = sum(gdp_pop$gdp),
-               gni = sum(gdp_pop$gni),
-               pop = sum(gdp_pop$pop))
-
-    gdp_pop_row <- within(gdp_pop, {
-
-      gdp_capita <- (gdp_pop_wld$gdp - gdp) / (gdp_pop_wld$pop - pop)
-      gni_capita <- (gdp_pop_wld$gni - gni) / (gdp_pop_wld$pop - pop)
-      gdp <- NULL
-      gni <- NULL
-      pop <- NULL
+      gdp <- ifelse(iso3c == "WLD", gdp, -gdp)
+      gni <- ifelse(iso3c == "WLD", gni, -gni)
+      pop <- ifelse(iso3c == "WLD", pop, -pop)
 
     })
+
+    gdp_gni_row <- data.frame(gdp_capita = sum(gdp_pop$gdp) / sum(gdp_pop$pop),
+               gni_capita = sum(gdp_pop$gni) / sum(gdp_pop$pop))
 
     # identifying epsilon on the basis of GNI per capita (Atlas method)
 
     epsilon_row <- income_class
 
-    epsilon_row$gni_row <- ifelse(gdp_pop_row$gni_capita < income_class$max & gdp_pop_row$gni_capita >= income_class$min,
+    epsilon_row$gni_row <- ifelse(gdp_gni_row$gni_capita < income_class$max & gdp_gni_row$gni_capita >= income_class$min,
                                    TRUE, FALSE)
 
-    gdp_pop_row$epsilon <- subset(epsilon_row, gni_row == TRUE)$epsilon
+    gdp_gni_row$epsilon <- subset(epsilon_row, gni_row == TRUE)$epsilon
 
-    bt_fct <- gdp_pop_row
+    bt_fct <- gdp_gni_row
 
     }
 

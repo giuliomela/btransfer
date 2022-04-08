@@ -27,7 +27,8 @@ any language.}
 is 2016, year about which the estimates provided by the European Commission's Handbook
 on the external cost of the transport sector refer to.}
 
-\item{policy_yr}{Numeric. The ywar to which values must be transferred. Default is 2019.}
+\item{policy_yr}{Numeric. The ywar to which values must be transferred. Default is 2019. It
+is possible to define also future years up to 2050.}
 
 \item{aggregate}{A single string. It can assume three different values. If \code{no} transfer
 factors are provided for each country selected via \code{policy_site}. If \code{yes} a transfer
@@ -35,8 +36,9 @@ factor is calculated for the aggregate made up by the countries selected via \co
 If \code{row} a transfer factor is calculated for the aggregate "rest of the world" (world
 minus countries selected via \code{policy_site}).}
 
-\item{currency}{A single string. It can assume two values: \code{EUR} (the default) or
-\code{USD}. It refers to the currency in which the original values is expressed.}
+\item{currency}{A single string. It can assume three values: \code{EUR} (the default),
+\code{USD} or \code{LCU}. It refers to the currency in which the original values is expressed.
+In case \code{LCU} is chosen, the GDP deflator and the currency considered are those of the study site.}
 }
 \value{
 A data frame containing all parameters used and the transfer factor (bt_fct), which
@@ -60,6 +62,13 @@ Finally, the function considers different values for income elasticity of the
 willingness to pay for the environmental/health good to be transferred (epsilon)
 according to the policy country's GNI per capita. More information on value
 transfer techniques can be found in Navrud and Ready (2007).
+The function works also in case policy year is set to a future year. Parameters like
+GDP per capita and GNI per capita (Needed to identify the appropriate epsilon)
+are calculated, for the policy year in the future, using average growth rates
+of the last n-year period. In this case, n (the lenght of the time window over
+which the growth averages are calculated) is equal to the time horizon defined
+by the policy year (i.e. if the policy year is 2030 and the last year with
+available data is 2020, the horizon is set to 10 years).
 }
 \examples{
 bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"))
