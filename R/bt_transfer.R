@@ -191,15 +191,7 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
       rownames(bt_fct) <- NULL
 
-      bt_fct <- within(bt_fct, { # value transfer factors adjusted for inflation
-
-        bt_fct <- ((gdp_capita / study_site_gdp)^epsilon) * gdp_defl_fct
-        future_transfer <- "yes"
-
-      })
-
-
-    } else {
+    } else { # if the policy year is not in the future
 
     gdp_capita <- subset(wb_series, iso3c %in% iso_policy & year == policy_yr,
                          select = c(iso3c, year, gdp_capita))
@@ -210,29 +202,14 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
     bt_fct$epsilon <- as.numeric(bt_fct$epsilon)
 
-    bt_fct <- within(bt_fct, { # value transfer factors adjusted for inflation
-
-    bt_fct <- ((gdp_capita / study_site_gdp)^epsilon) * gdp_defl_fct
-
-    })
+    bt_fct$year <- NULL
 
     }
 
- if (currency == "EUR") {
 
-   bt_fct
+  } else if (aggregate == "yes") { # if the BT must be performed towards an aggregate
 
- } else if (currency == "USD") {
-
-   bt_fct$bt_fct <- bt_fct$bt_fct * us_euro
-
-   bt_fct
- }
-
-
-  } else if (aggregate == "yes") {
-
-    if (policy_yr > latest_av_yr) {
+    if (policy_yr > latest_av_yr) { # if the policy year is in the future
 
       # computing average gdp per capita growth of the aggregate
 
@@ -279,16 +256,10 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
       bt_fct$epsilon <- subset(epsilon_agg, gni_agg == TRUE)$epsilon
 
-      bt_fct <- within(bt_fct, { # value transfer factors adjusted for inflation
-
-        bt_fct <- ((gdp_capita / study_site_gdp)^epsilon) * gdp_defl_fct
-
-      })
-
       rownames(bt_fct) <- NULL
 
 
-    } else {
+    } else { # if policy year is not in the future (usually latest year with avilable data)
 
     # subsetting data
 
@@ -299,7 +270,7 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
     bt_fct <- data.frame(gdp_capita = sum(gdp_pop$gdp) / sum(gdp_pop$pop),
                gni_capita = sum(gdp_pop$gni) / sum(gdp_pop$pop))
 
-    # calculating trasnfer factors
+    # calculating transfer factors
 
     # identifying epsilon on the basis of the latest income classification by the WB
 
@@ -310,30 +281,14 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
     bt_fct$epsilon <- subset(epsilon_agg, gni_agg == TRUE)$epsilon
 
-    bt_fct <- within(bt_fct, { # value transfer factors adjusted for inflation
-
-    bt_fct <- ((gdp_capita / study_site_gdp)^epsilon) * gdp_defl_fct
-
-    })
-
     rownames(bt_fct) <- NULL
 
     }
 
-    if (currency == "EUR") {
 
-      bt_fct
+  } else if (aggregate == "row"){ # if the policy sit is the ROW (world minus countries provided)
 
-    } else if (currency == "USD") {
-
-      bt_fct$bt_fct <- bt_fct$bt_fct* us_euro
-
-      bt_fct
-    }
-
-  } else if (aggregate == "row"){
-
-    if (policy_yr > latest_av_yr) {
+    if (policy_yr > latest_av_yr) { # if the policy year is in the future
 
       gdp_gni_pop <-  subset(wb_series, iso3c %in% c(iso_policy, "WLD") & year > latest_av_yr - h - 1,
                          select = c(iso3c, year, gdp, gni, pop))
@@ -385,14 +340,7 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
       bt_fct$epsilon <- subset(epsilon_agg, gni_agg == TRUE)$epsilon
 
-      bt_fct <- within(bt_fct, { # value transfer factors adjusted for inflation
-
-        bt_fct <- ((gdp_capita / study_site_gdp)^epsilon) * gdp_defl_fct
-
-      })
-
-
-    } else {
+    } else { # if the policy year is NOT in the future (usually latest year with available data)
 
     gdp_pop_wld <- subset(wb_series, iso3c == "WLD" & year == policy_yr)
 
@@ -421,25 +369,28 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
     gdp_pop_row$epsilon <- subset(epsilon_row, gni_row == TRUE)$epsilon
 
-    bt_fct <- within(gdp_pop_row, {
-
-      bt_fct <- (gdp_capita / study_site_gdp)^epsilon * gdp_defl_fct
-
-    })
+    bt_fct <- gdp_pop_row
 
     }
 
-    if (currency == "EUR") {
+  }
 
-      bt_fct
+  bt_fct <- within(bt_fct, { # value transfer factors adjusted for inflation
 
-    } else if (currency == "USD") {
+    bt_fct <- ((gdp_capita / study_site_gdp)^epsilon) * gdp_defl_fct
+    year <- policy_yr
 
-      bt_fct$bt_fct <- bt_fct$bt_fct* us_euro
+  })
 
-      bt_fct
-    }
+  if (currency == "EUR") {
 
+    bt_fct
+
+  } else if (currency == "USD") {
+
+    bt_fct$bt_fct <- bt_fct$bt_fct * us_euro
+
+    bt_fct
 
   }
 
