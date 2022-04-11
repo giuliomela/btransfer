@@ -15,4 +15,4 @@
 #' \item{pop_growth}{Annual population growth rate (Wb code: SP.POP.GROW)}
 #' }
 #' @source \url{https://data.worldbank.org/}
-"wb_series"
+"wb_growth"

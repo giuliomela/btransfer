@@ -4,9 +4,8 @@ Title: Benefit transfer
 Version: 0.1.0
 Author: Giulio Mela
 Maintainer: Giulio Mela <giulio.mela@rse-web.it>
-Description: performs unit value transfer (with income adjustment) for
-    transport externalities
-License: What license is it under?
+Description: Computes transfer factors to perform unit value transfer with income adjustment for any country in the world.
+License: MIT + file LICENSE
 URL: https://github.com/giuliomela/btransfer.git
 Imports: 
     countrycode,

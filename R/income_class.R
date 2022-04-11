@@ -9,6 +9,7 @@
 #' @format A data frame
 #' \describe{
 #' \item{income_level}{Country income classification according to the WB}
+#' \item{income_level_iso3c}{Income classification code}
 #' \item{min}{Lower bound of income classification (international USD)}
 #' \item{max}{Upper bound of income classification (international USD)}
 #' \item{epsilon}{income elasticity of the willingness to pay of the corresponding income group}

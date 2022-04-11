@@ -48,25 +48,30 @@
 #' @return A data frame containing all parameters used and the transfer factor (bt_fct), which
 #' is the scalar which the original value must be multiplied by to perform the transfer. Such
 #' factor is already adjusted for inflation.
+#' @export
+#'
 #' @examples
 #' bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"))
-#' bt_transfer(study_site = "United States",
-#' policy_site = c("Italia", "Allemagne", "France", "España", "Polska"),
-#' currency = "USD")
+#' bt_transfer(study_site = "United States", policy_site = "Italia", currency = "USD")
 #' bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"), aggregate = "yes")
-#' bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"), aggregate = "row")
-#' bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"), policy_yr = 2030,
-#' aggregate = "row")
+#' bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"),aggregate = "row")
+#' bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"), policy_yr = 2030, aggregate = "row")
 bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, policy_yr = 2019,
                          aggregate = "no", currency = "EUR") {
 
   # veryfing the call is correct (error messages provided if not)
+
+  if (length(policy_site) == 1) {
 
   if(policy_site == "WLD" & aggregate %in% c("yes", "row"))
     stop("If world is selected as policy site, aggregate must be set to no")
 
   if(policy_site == "EUU" & aggregate == "yes")
     stop("If the EU is selected as policy site, aggregate must be set to either no or row")
+
+  }
+
+  if(policy_yr > 2050) stop("Value transfer can be performed up to 2050 at most")
 
   # defining whether the value transfer is to be performed for a year in the future or not
 
@@ -86,25 +91,12 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
   # identifying iso3c codes of provided study and policy sites
 
-  if (study_site %in% c("EUU", "WLD")) {
+  iso_study <- ifelse(study_site %in% c("EUU", "WLD"), study_site,
+                      countrycode::countryname(study_site, "iso3c"))
 
-    iso_study <- study_site
-
-  } else {
-
-    iso_study <- countrycode::countryname(study_site, "iso3c")
-
-  }
-
-  if (policy_site %in% c("EUU", "WLD")) {
-
-    iso_policy <- policy_site
-
-  } else {
-
-    iso_policy <- countrycode::countryname(policy_site, "iso3c")
-
-  }
+  iso_policy <- sapply(policy_site, function(x) {
+    ifelse(x %in% c("EUU", "WLD"), x, countrycode::countryname(x, "iso3c"))
+  })
 
   # income levels and epsilon
 
@@ -237,29 +229,13 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
     # assigning epsilon according to income levels and computing transfer factor (adjusted for inflation)
 
-    if (iso_policy == "WLD") {
 
-      gni_capita_wld <- subset(wb_series, iso3c == iso_policy & year == policy_yr)
-
-      gni_capita_wld <- gni_capita_wld$gni /gni_capita_wld$pop
-
-      epsilon_agg <- income_class
-
-      epsilon_agg$gni_wld <- ifelse(gni_capita_wld < income_class$max & gni_capita_wld >= income_class$min,
-                                    TRUE, FALSE)
-      bt_fct$epsilon <- epsilon_agg[epsilon_agg$gni_wld == TRUE, ]$epsilon
-
-      bt_fct$year <- NULL
-
-    } else {
 
     bt_fct <- merge(bt_fct, epsilon, all.x = TRUE)
 
     bt_fct$epsilon <- as.numeric(bt_fct$epsilon)
 
     bt_fct$year <- NULL
-
-    }
 
     }
 

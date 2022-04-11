@@ -2,17 +2,25 @@
 
 latest_yr <- 2020
 
+eta_lit <- 1.35 # value of eta (an element of Ramsey's rule) from the literature
+
+# list of countries (WB) - no aggregates (ISO codes only)
+
+country_list <- wbstats::wb_countries()
+
+country_list <- country_list[country_list$region != "Aggregates", ]$iso3c
+
 # loading income classification
 income_class <- read.csv(here::here("data-raw/income_class.csv"), sep = ";")
 
 # downloading data from the world bank database
 
 wb_series <- wbstats::wb_data(c("NY.GDP.PCAP.PP.KD", "NY.GDP.MKTP.PP.KD",
-                   "SP.POP.TOTL", "NY.GNP.ATLS.CD", "NY.GDP.DEFL.ZS", "PA.NUS.FCRF", ),
+                   "SP.POP.TOTL", "NY.GNP.ATLS.CD", "NY.GDP.DEFL.ZS", "PA.NUS.FCRF", "SP.DYN.CDRT.IN"),
                    country = c("all", "WLD", "EUU"))
 
 names(wb_series) <- c("iso2c", "iso3c", "country", "year", "gdp_defl", "gdp", "gdp_capita",
-                      "gni", "exc_rate", "pop")
+                      "gni", "exc_rate", "death_rate", "pop")
 
 wb_series <- wb_series[, -1]
 
@@ -58,5 +66,45 @@ income_lvs <- wbstats::wb_countries()[, c("iso3c", "income_level_iso3c", "income
 
 income_lvs <- subset(income_lvs, !is.na(income_level_iso3c))
 
-usethis::use_data(income_class, wb_series, gdp_defl_eurostat, income_lvs, wb_growth, overwrite = TRUE)
+# computing income level for the world aggregate
+
+gni_capita_wld <- subset(wb_series, iso3c == "WLD" & year == latest_yr)
+
+gni_capita_wld <- gni_capita_wld$gni /gni_capita_wld$pop
+
+epsilon_agg <- income_class
+
+epsilon_agg$gni_wld <- ifelse(gni_capita_wld < income_class$max & gni_capita_wld >= income_class$min,
+                              TRUE, FALSE)
+
+income_class_wld <- data.frame(iso3c = "WLD",
+                               income_level_iso3c = epsilon_agg[epsilon_agg$gni_wld == TRUE, ]$income_level_iso3c,
+                               income_level = epsilon_agg[epsilon_agg$gni_wld == TRUE, ]$income_level)
+
+income_lvs <- rbind(income_lvs, income_class_wld)
+
+# Computing etas for benefit transfer
+
+# downloading taxation data from OECD (to be used in SDR calculation)
+# Taxing Wages - Comparative tables ID: AWCOMP
+
+# setting filters for data extraction (2_5 net personal average tax rate, 3_1 net personal marginal tax rate)
+
+oecd_filter <- list(c("2_5", "3_1"), "SINGLE2") # used data for single people earning 110% of average salary
+
+tax_data <- OECD::get_dataset("AWCOMP", filter = oecd_filter)
+
+tax_data <- within(tax_data,{
+  year <- as.numeric(Time)
+  value <- as.numeric(ObsValue)
+  indicator <- INDICATOR
+  iso3c <- COU
+})
+
+tax_data <- subset(tax_data, select = c(iso3c, year, indicator, value))
+
+
+usethis::use_data(income_class, wb_series, gdp_defl_eurostat, income_lvs, wb_growth, tax_data,
+                  country_list,
+                  overwrite = TRUE)
 
