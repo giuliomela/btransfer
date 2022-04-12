@@ -12,7 +12,9 @@ Imports:
     dplyr,
     OECD,
     Rdpack,
+    stats,
     tidyr,
+    utils,
     wbstats
 Encoding: UTF-8
 LazyData: true

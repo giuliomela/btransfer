@@ -30,6 +30,8 @@
 #'  compute_sdr(c("Italia", "Alemania", "France", "Polska", aggregate = "row"))
 compute_sdr <- function(country, policy_yr = 2019, h = 10, aggregate = "no", eta_lit = 1.35){
 
+  iso3c <- year <- death_rate <- gdp_capita_growth <- gdp <- pop <- NULL
+
 # Identifying the iso3c codes of the countryies of interest. Names can be provided in any language
   country_iso <- countrycode::countryname(sourcevar = country,
                                   destination = "iso3c")
@@ -40,7 +42,7 @@ compute_sdr <- function(country, policy_yr = 2019, h = 10, aggregate = "no", eta
 
   # Computing average growth rates
 
-  gdp_growth <- subset(wb_growth, iso3c %in% country_iso & year > policy_yr - h &
+  gdp_growth <- subset(btransfer::wb_growth, iso3c %in% country_iso & year > policy_yr - h &
            year <= policy_yr)
 
   gdp_growth_l <- split(gdp_growth, gdp_growth$iso3c)
@@ -56,7 +58,7 @@ compute_sdr <- function(country, policy_yr = 2019, h = 10, aggregate = "no", eta
 
   # computing average ten-year death rate for selected countries
 
-  death_rt <- subset(wb_series, iso3c %in% country_iso & year > policy_yr - h &
+  death_rt <- subset(btransfer::wb_series, iso3c %in% country_iso & year > policy_yr - h &
                        year <= policy_yr, select = c(iso3c, year, death_rate))
 
   death_rt_l <- split(death_rt, death_rt$iso3c)
@@ -87,7 +89,7 @@ compute_sdr <- function(country, policy_yr = 2019, h = 10, aggregate = "no", eta
 
     # In case of aggregates, average growth rates must be computed from gdp and population data
 
-    gdp_pop <- subset(wb_series, iso3c %in% country_iso & year >= policy_yr - h &
+    gdp_pop <- subset(btransfer::wb_series, iso3c %in% country_iso & year >= policy_yr - h &
                         year <= policy_yr, select = c(iso3c, year, gdp, pop))
 
     gdp_pop_l <- split(gdp_pop, gdp_pop$year)
@@ -113,7 +115,7 @@ compute_sdr <- function(country, policy_yr = 2019, h = 10, aggregate = "no", eta
 
     # computing aggregate death rates
 
-    death_rt <- subset(wb_series, iso3c %in% country_iso & year > policy_yr - h &
+    death_rt <- subset(btransfer::wb_series, iso3c %in% country_iso & year > policy_yr - h &
                          year <= policy_yr, select = c(iso3c, year, death_rate, pop))
 
     # computing year-by-year avg death rates of the aggregate
@@ -122,7 +124,7 @@ compute_sdr <- function(country, policy_yr = 2019, h = 10, aggregate = "no", eta
 
     death_rt_l <- lapply(death_rt_l, function(x){
       data.frame(year = unique(x$year),
-                 death_rt = weighted.mean(x$death_rate, x$pop))
+                 death_rt = stats::weighted.mean(x$death_rate, x$pop))
     })
 
     death_rt <- do.call("rbind", death_rt_l)
@@ -139,7 +141,7 @@ compute_sdr <- function(country, policy_yr = 2019, h = 10, aggregate = "no", eta
 
     # weighting eta according to population
 
-    avg_pop <- subset(wb_series, iso3c %in% country_iso & year > policy_yr - h &
+    avg_pop <- subset(btransfer::wb_series, iso3c %in% country_iso & year > policy_yr - h &
                         year <= policy_yr, select = c(iso3c, year, pop))
 
     avg_pop_l <- split(avg_pop, avg_pop$iso3c)
@@ -155,7 +157,7 @@ compute_sdr <- function(country, policy_yr = 2019, h = 10, aggregate = "no", eta
 
     eta_countries <- merge(eta_countries, avg_pop)
 
-    eta <- weighted.mean(eta_countries$eta, eta_countries$pop)
+    eta <- stats::weighted.mean(eta_countries$eta, eta_countries$pop)
 
 
   # computing the SDR
@@ -166,7 +168,7 @@ compute_sdr <- function(country, policy_yr = 2019, h = 10, aggregate = "no", eta
 
   } else if (aggregate == "row"){ # computes the sdr of the rest of the world (with respect to selected countries)
 
-    gdp_pop <- subset(wb_series, iso3c %in% c(country_iso, "WLD") & year >= policy_yr - h &
+    gdp_pop <- subset(btransfer::wb_series, iso3c %in% c(country_iso, "WLD") & year >= policy_yr - h &
              year <= policy_yr, select = c(iso3c, year, gdp, pop))
 
     gdp_pop <- transform(gdp_pop, gdp = ifelse(iso3c != "WLD", - gdp, gdp),
@@ -197,11 +199,11 @@ compute_sdr <- function(country, policy_yr = 2019, h = 10, aggregate = "no", eta
 
     # computing row  death rate
 
-    row_countries <- setdiff(country_list, country_iso)
+    row_countries <- setdiff(btransfer::country_list, country_iso)
 
-    row_countries <- setdiff(wb_series$iso3c, c(iso3c, "WLD"))
+    row_countries <- setdiff(btransfer::wb_series$iso3c, c(iso3c, "WLD"))
 
-    death_rt <- subset(wb_series, iso3c %in% row_countries & year > policy_yr - h &
+    death_rt <- subset(btransfer::wb_series, iso3c %in% row_countries & year > policy_yr - h &
                          year <= policy_yr,
                        select = c(iso3c, year, death_rate, pop))
 
@@ -210,9 +212,9 @@ compute_sdr <- function(country, policy_yr = 2019, h = 10, aggregate = "no", eta
 
     death_rt_l <- lapply(death_rt_l, function(x) {
 
-      data <- na.omit(x) # removes NA rows
+      data <- stats::na.omit(x) # removes NA rows
 
-      weighted.mean(data$death_rate, data$pop, na.rm = TRUE)
+      stats::weighted.mean(data$death_rate, data$pop, na.rm = TRUE)
 
     })
 

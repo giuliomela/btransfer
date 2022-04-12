@@ -21,13 +21,15 @@
 #' compute_eta("ITA", 2019, 10)
 compute_eta <- function(iso_code, policy_yr, h, eta_lit) {
 
+  iso3c <- year <- NULL
+
   # tax data is pre-loaded
 
-  if (is.element(iso_code, unique(tax_data$iso3c))) {
+  if (is.element(iso_code, unique(btransfer::tax_data$iso3c))) {
 
   from_yr <- policy_yr - h - 1 # year from which computing averages
 
-  data <- subset(tax_data, iso3c == iso_code & year > from_yr & year <= policy_yr)
+  data <- subset(btransfer::tax_data, iso3c == iso_code & year > from_yr & year <= policy_yr)
 
   avg_tax_rt <- mean(data[data$indicator == "2_5", ]$value, na.rm = TRUE) / 100
 

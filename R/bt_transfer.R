@@ -1,4 +1,4 @@
-#' Computing transfer factos for unit value trasnfer with income adjustment
+#' Computing transfer factors for unit value transfer with income adjustment
 #'
 #' \code{bt_transfer} returns a data frame with all parameters used to calculate
 #' transfer factors which can be in turn used to perform value transfers in
@@ -53,11 +53,16 @@
 #' @examples
 #' bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"))
 #' bt_transfer(study_site = "United States", policy_site = "Italia", currency = "USD")
-#' bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"), aggregate = "yes")
-#' bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"),aggregate = "row")
-#' bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"), policy_yr = 2030, aggregate = "row")
+#' bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"),
+#' aggregate = "yes")
+#' bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"),
+#' aggregate = "row")
+#' bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"),
+#' policy_yr = 2030, aggregate = "row")
 bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, policy_yr = 2019,
                          aggregate = "no", currency = "EUR") {
+
+  iso3c <- eu_code <- gdp_capita <- income_class <- gni_agg <- gni_row <- NULL
 
   # veryfing the call is correct (error messages provided if not)
 
@@ -75,7 +80,7 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
   # defining whether the value transfer is to be performed for a year in the future or not
 
-  latest_av_yr <- max(wb_series$year) # latest year for which actual data are avilable
+  latest_av_yr <- max(btransfer::wb_series$year) # latest year for which actual data are avilable
 
   # forecasting indicator values in case policy year is in the future
 
@@ -85,7 +90,7 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
     h <- policy_yr - latest_av_yr
 
-    growth_rates <- subset(wb_growth, year > latest_av_yr - h)
+    growth_rates <- subset(btransfer::wb_growth, year > latest_av_yr - h)
 
   }
 
@@ -100,9 +105,9 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
   # income levels and epsilon
 
-  epsilon <- income_class[, c("income_level_iso3c", "epsilon")]
+  epsilon <- btransfer::income_class[, c("income_level_iso3c", "epsilon")]
 
-  epsilon <- merge(income_lvs, epsilon)[, c("iso3c", "epsilon")]
+  epsilon <- merge(btransfer::income_lvs, epsilon)[, c("iso3c", "epsilon")]
 
   epsilon$epsilon <- as.numeric(epsilon$epsilon)
 
@@ -112,50 +117,50 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
   # Defining gdp per capita data of the study site
 
-  study_site_gdp <- subset(wb_series, iso3c == iso_study & year == study_yr)$gdp_capita
+  study_site_gdp <- subset(btransfer::wb_series, iso3c == iso_study & year == study_yr)$gdp_capita
 
   # Defining GDP deflator to be used
 
   if (currency == "EUR") {
 
-    gdp_defl_study <- subset(gdp_defl_eurostat, eu_code == "EA" & year == study_yr)$gdp_defl
+    gdp_defl_study <- subset(btransfer::gdp_defl_eurostat, eu_code == "EA" & year == study_yr)$gdp_defl
 
     # multiplying factor to be used to account for inflation from study to policy year
 
 
-    gdp_defl_fct <- subset(gdp_defl_eurostat, eu_code == "EA" &
+    gdp_defl_fct <- subset(btransfer::gdp_defl_eurostat, eu_code == "EA" &
                              year == ifelse(policy_yr > latest_av_yr,
                                             latest_av_yr, policy_yr))$gdp_defl / gdp_defl_study
 
   } else if (currency == "USD") {
 
-    gdp_defl_study <- subset(wb_series, iso3c == "USA" & year == study_yr)$gdp_defl
+    gdp_defl_study <- subset(btransfer::wb_series, iso3c == "USA" & year == study_yr)$gdp_defl
 
-    gdp_defl_fct <- subset(wb_series, iso3c == "USA" &
+    gdp_defl_fct <- subset(btransfer::wb_series, iso3c == "USA" &
                              year == ifelse(policy_yr > latest_av_yr,
                                             latest_av_yr, policy_yr))$gdp_defl / gdp_defl_study
 
     # USD-EUR policy year exchange rate. USD per EUR (values in dollars ,ust be multiplied for this factor)
 
-    us_euro <- subset(wb_series, iso3c == "EMU" &
+    us_euro <- subset(btransfer::wb_series, iso3c == "EMU" &
                         year == ifelse(policy_yr > latest_av_yr,
                                        latest_av_yr, policy_yr))$exc_rate
 
   } else if (currency == "LCU") { # in case the currency of the primary estimate is in LCU
 
-    gdp_defl_study <- subset(wb_series, iso3c == iso_study & year == study_yr)$gdp_defl
+    gdp_defl_study <- subset(btransfer::wb_series, iso3c == iso_study & year == study_yr)$gdp_defl
 
-    gdp_defl_fct <- subset(wb_series, iso3c == iso_study &
+    gdp_defl_fct <- subset(btransfer::wb_series, iso3c == iso_study &
                              year == ifelse(policy_yr > latest_av_yr,
                                             latest_av_yr, policy_yr))$gdp_defl / gdp_defl_study
 
     # converting LCU in USD and finally in EUR
 
-    lcu_us <- subset(wb_series, iso3c == iso_study &
+    lcu_us <- subset(btransfer::wb_series, iso3c == iso_study &
                        year == ifelse(policy_yr > latest_av_yr,
                                       latest_av_yr, policy_yr))$exc_rate
 
-    us_euro <- subset(wb_series, iso3c == "EMU" &
+    us_euro <- subset(btransfer::wb_series, iso3c == "EMU" &
                         year == ifelse(policy_yr > latest_av_yr,
                                        latest_av_yr, policy_yr))$exc_rate
 
@@ -167,7 +172,7 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
     if (policy_yr > latest_av_yr) {
 
-      growth_params <- subset(wb_series, iso3c %in% iso_policy & year == latest_av_yr,
+      growth_params <- subset(btransfer::wb_series, iso3c %in% iso_policy & year == latest_av_yr,
              select = c(iso3c, year, gdp_capita, gni, pop))
 
       growth_selected <- subset(growth_rates, iso3c %in% iso_policy)
@@ -205,9 +210,9 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
       bt_fct_l <- lapply(bt_fct_l, function (x) {
 
-        epsilon_agg <- income_class
+        epsilon_agg <- btransfer::income_class
 
-        epsilon_agg$gni_agg <- ifelse(x$gni_capita < income_class$max & x$gni_capita >= income_class$min,
+        epsilon_agg$gni_agg <- ifelse(x$gni_capita < btransfer::income_class$max & x$gni_capita >= btransfer::income_class$min,
                                       TRUE, FALSE)
 
         bt_fct <- x
@@ -224,7 +229,7 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
     } else { # if the policy year is not in the future
 
-      bt_fct <- subset(wb_series, iso3c %in% iso_policy & year == policy_yr,
+      bt_fct <- subset(btransfer::wb_series, iso3c %in% iso_policy & year == policy_yr,
                          select = c(iso3c, year, gdp_capita))
 
     # assigning epsilon according to income levels and computing transfer factor (adjusted for inflation)
@@ -246,7 +251,7 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
       # computing average gdp per capita growth of the aggregate
 
-      gdp_pop <- subset(wb_series,
+      gdp_pop <- subset(btransfer::wb_series,
                         iso3c %in% iso_policy & year > latest_av_yr - h - 1,
                         select = c(iso3c, year, gdp, gni, pop))
 
@@ -282,9 +287,9 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
       # defining epsilon
 
-      epsilon_agg <- income_class
+      epsilon_agg <- btransfer::income_class
 
-      epsilon_agg$gni_agg <- ifelse(bt_fct$gni_capita < income_class$max & bt_fct$gni_capita >= income_class$min,
+      epsilon_agg$gni_agg <- ifelse(bt_fct$gni_capita < btransfer::income_class$max & bt_fct$gni_capita >= btransfer::income_class$min,
                                     TRUE, FALSE)
 
       bt_fct$epsilon <- subset(epsilon_agg, gni_agg == TRUE)$epsilon
@@ -296,7 +301,7 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
     # subsetting data
 
-    gdp_pop <- subset(wb_series,
+    gdp_pop <- subset(btransfer::wb_series,
                       iso3c %in% iso_policy & year == policy_yr,
                       select = c(iso3c, year, gdp, gni, pop))
 
@@ -307,9 +312,9 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
     # identifying epsilon on the basis of the latest income classification by the WB
 
-    epsilon_agg <- income_class
+    epsilon_agg <- btransfer::income_class
 
-    epsilon_agg$gni_agg <- ifelse(bt_fct$gni_capita < income_class$max & bt_fct$gni_capita >= income_class$min,
+    epsilon_agg$gni_agg <- ifelse(bt_fct$gni_capita < btransfer::income_class$max & bt_fct$gni_capita >= btransfer::income_class$min,
                                   TRUE, FALSE)
 
     bt_fct$epsilon <- subset(epsilon_agg, gni_agg == TRUE)$epsilon
@@ -323,7 +328,7 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
     if (policy_yr > latest_av_yr) { # if the policy year is in the future
 
-      gdp_gni_pop <-  subset(wb_series, iso3c %in% c(iso_policy, "WLD") & year > latest_av_yr - h - 1,
+      gdp_gni_pop <-  subset(btransfer::wb_series, iso3c %in% c(iso_policy, "WLD") & year > latest_av_yr - h - 1,
                          select = c(iso3c, year, gdp, gni, pop))
 
       gdp_gni_pop <- within(gdp_gni_pop, {
@@ -366,16 +371,16 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
       # defining epsilon
 
-      epsilon_agg <- income_class
+      epsilon_agg <- btransfer::income_class
 
-      epsilon_agg$gni_agg <- ifelse(bt_fct$gni_capita < income_class$max & bt_fct$gni_capita >= income_class$min,
+      epsilon_agg$gni_agg <- ifelse(bt_fct$gni_capita < btransfer::income_class$max & bt_fct$gni_capita >= btransfer::income_class$min,
                                     TRUE, FALSE)
 
       bt_fct$epsilon <- subset(epsilon_agg, gni_agg == TRUE)$epsilon
 
     } else { # if the policy year is NOT in the future (usually latest year with available data)
 
-    gdp_pop <- subset(wb_series, iso3c %in% c(iso_policy, "WLD") & year == policy_yr)
+    gdp_pop <- subset(btransfer::wb_series, iso3c %in% c(iso_policy, "WLD") & year == policy_yr)
 
     gdp_pop <- within(gdp_pop, {
 
@@ -390,9 +395,9 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
     # identifying epsilon on the basis of GNI per capita (Atlas method)
 
-    epsilon_row <- income_class
+    epsilon_row <- btransfer::income_class
 
-    epsilon_row$gni_row <- ifelse(gdp_gni_row$gni_capita < income_class$max & gdp_gni_row$gni_capita >= income_class$min,
+    epsilon_row$gni_row <- ifelse(gdp_gni_row$gni_capita < btransfer::income_class$max & gdp_gni_row$gni_capita >= btransfer::income_class$min,
                                    TRUE, FALSE)
 
     gdp_gni_row$epsilon <- subset(epsilon_row, gni_row == TRUE)$epsilon

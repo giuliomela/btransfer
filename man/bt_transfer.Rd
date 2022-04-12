@@ -2,7 +2,7 @@
 % Please edit documentation in R/bt_transfer.R
 \name{bt_transfer}
 \alias{bt_transfer}
-\title{Computing transfer factos for unit value trasnfer with income adjustment}
+\title{Computing transfer factors for unit value transfer with income adjustment}
 \usage{
 bt_transfer(
   study_site = "EUU",
@@ -75,7 +75,10 @@ available data is 2020, the horizon is set to 10 years).
 \examples{
 bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"))
 bt_transfer(study_site = "United States", policy_site = "Italia", currency = "USD")
-bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"), aggregate = "yes")
-bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"),aggregate = "row")
-bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"), policy_yr = 2030, aggregate = "row")
+bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"),
+aggregate = "yes")
+bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"),
+aggregate = "row")
+bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"),
+policy_yr = 2030, aggregate = "row")
 }

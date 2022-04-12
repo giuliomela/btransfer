@@ -8,7 +8,7 @@ compute_sdr(
   country,
   policy_yr = 2019,
   h = 10,
-  aggregate = FALSE,
+  aggregate = "no",
   eta_lit = 1.35
 )
 }
