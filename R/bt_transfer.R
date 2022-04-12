@@ -42,9 +42,15 @@
 #' factor is calculated for the aggregate made up by the countries selected via \code{policy_site}.
 #' If \code{row} a transfer factor is calculated for the aggregate "rest of the world" (world
 #' minus countries selected via \code{policy_site}).
-#' @param currency A single string. It can assume three values: \code{EUR} (the default),
+#' @param study_currency A single string. It can assume three values: \code{EUR} (the default),
 #' \code{USD} or \code{LCU}. It refers to the currency in which the original values is expressed.
 #' In case \code{LCU} is chosen, the GDP deflator and the currency considered are those of the study site.
+#' In case \code{EUR} or \code{USD} are provided the Euro area and the US GDP deflators are used
+#' respectively.
+#' @param policy_currency A single string. It can assume three values: \code{EUR} (the default),
+#' \code{USD} or \code{LCU}. It refers to the currency in which the final value must be expressed.
+#' The option \code{LCU} can be chosen only if just one policy site in provided through
+#' the paramter \code{policy_site}.
 #' @return A data frame containing all parameters used and the transfer factor (bt_fct), which
 #' is the scalar which the original value must be multiplied by to perform the transfer. Such
 #' factor is already adjusted for inflation.
@@ -60,7 +66,7 @@
 #' bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"),
 #' policy_yr = 2030, aggregate = "row")
 bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, policy_yr = 2019,
-                         aggregate = "no", currency = "EUR") {
+                         aggregate = "no", study_currency = "EUR",  policy_currency = "EUR") {
 
   iso3c <- eu_code <- gdp_capita <- income_class <- gni_agg <- gni_row <- NULL
 
@@ -76,7 +82,12 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
   }
 
-  if (!is.element(currency, c("EUR", "USD", "LCU"))) stop("Please provide a valid currency unit: USD, EUR or LCU")
+  if (!is.element(study_currency, c("EUR", "USD", "LCU"))) stop("Please provide a valid currency unit: USD, EUR or LCU")
+
+  if (!is.element(policy_currency, c("EUR", "USD", "LCU"))) stop("Please provide a valid currency unit: USD, EUR or LCU")
+
+  if (length(policy_site) > 1 & policy_currency == "LCU") stop("The option policy currency can be set to LCU only if just one policy site is selected.
+                                                               Please retry indicating just one policy site")
 
   if(policy_yr > 2050) stop("Value transfer can be performed up to 2050 at most")
 
@@ -123,7 +134,7 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
   # Defining GDP deflator to be used
 
-  if (currency == "USD") {
+  if (study_currency == "USD") {
 
     gdp_defl_study <- subset(btransfer::wb_series, iso3c == "USA" & year == study_yr)$gdp_defl
 
@@ -131,13 +142,8 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
                              year == ifelse(policy_yr > latest_av_yr,
                                             latest_av_yr, policy_yr))$gdp_defl / gdp_defl_study
 
-    # USD-EUR policy year exchange rate. USD per EUR (values in dollars ,ust be multiplied for this factor)
 
-    us_euro <- subset(btransfer::wb_series, iso3c == "EMU" &
-                        year == ifelse(policy_yr > latest_av_yr,
-                                       latest_av_yr, policy_yr))$exc_rate
-
-  } else if (currency == "LCU") { # in case the currency of the primary estimate is in LCU
+  } else if (study_currency == "LCU") { # in case the currency of the primary estimate is in LCU
 
     gdp_defl_study <- subset(btransfer::wb_series, iso3c == iso_study & year == study_yr)$gdp_defl
 
@@ -145,19 +151,8 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
                              year == ifelse(policy_yr > latest_av_yr,
                                             latest_av_yr, policy_yr))$gdp_defl / gdp_defl_study
 
-    # converting LCU in USD and finally in EUR
 
-    lcu_us <- subset(btransfer::wb_series, iso3c == iso_study &
-                       year == ifelse(policy_yr > latest_av_yr,
-                                      latest_av_yr, policy_yr))$exc_rate
-
-    us_euro <- subset(btransfer::wb_series, iso3c == "EMU" &
-                        year == ifelse(policy_yr > latest_av_yr,
-                                       latest_av_yr, policy_yr))$exc_rate
-
-    us_euro <-  us_euro / lcu_us
-
-  } else if (currency == "EUR") {
+  } else if (study_currency == "EUR") {
 
     gdp_defl_study <- subset(btransfer::gdp_defl_eurostat, eu_code == "EA" & year == study_yr)$gdp_defl
 
@@ -168,9 +163,42 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
                              year == ifelse(policy_yr > latest_av_yr,
                                             latest_av_yr, policy_yr))$gdp_defl / gdp_defl_study
 
-    us_euro <- 1
+  }
 
-    }
+  # defining exchange rates to be used
+
+  if (study_currency == policy_currency) {
+
+    exc_rate_fct <- 1
+
+  } else {
+
+  cur_study <- dplyr::case_when(
+    study_currency == "EUR" ~ "EMU",
+    study_currency == "USD" ~ "USA",
+    TRUE ~ ifelse(iso_study == "EUU", "EMU", iso_study)
+  )
+
+  cur_policy <- dplyr::case_when(
+    policy_currency == "EUR" ~ "EMU",
+    policy_currency == "USD" ~ "USA",
+    TRUE ~ ifelse(iso_policy == "EUU", "EMU", iso_policy)
+  )
+
+
+  exc_rates <- subset(btransfer::wb_series, iso3c %in% c(cur_study, cur_policy) &
+                        year == ifelse(policy_yr > latest_av_yr,
+                                       latest_av_yr, policy_yr),
+                      select = c("iso3c", "exc_rate"))
+
+  # converting factor from study country currency to USD
+
+  exc_rate_fct <- exc_rates[exc_rates$iso3c == cur_policy,]$exc_rate /
+    exc_rates[exc_rates$iso3c == cur_study,]$exc_rate
+
+
+  }
+
 
   if (aggregate == "no") {
 
@@ -420,7 +448,7 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
   })
   # converting currency if needed
 
-    bt_fct$bt_fct <- bt_fct$bt_fct * us_euro
+    bt_fct$bt_fct <- bt_fct$bt_fct * exc_rate_fct
 
     bt_fct
 

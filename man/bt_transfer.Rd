@@ -10,7 +10,8 @@ bt_transfer(
   study_yr = 2016,
   policy_yr = 2019,
   aggregate = "no",
-  currency = "EUR"
+  study_currency = "EUR",
+  policy_currency = "EUR"
 )
 }
 \arguments{
@@ -38,9 +39,16 @@ factor is calculated for the aggregate made up by the countries selected via \co
 If \code{row} a transfer factor is calculated for the aggregate "rest of the world" (world
 minus countries selected via \code{policy_site}).}
 
-\item{currency}{A single string. It can assume three values: \code{EUR} (the default),
+\item{study_currency}{A single string. It can assume three values: \code{EUR} (the default),
 \code{USD} or \code{LCU}. It refers to the currency in which the original values is expressed.
-In case \code{LCU} is chosen, the GDP deflator and the currency considered are those of the study site.}
+In case \code{LCU} is chosen, the GDP deflator and the currency considered are those of the study site.
+In case \code{EUR} or \code{USD} are provided the Euro area and the US GDP deflators are used
+respectively.}
+
+\item{policy_currency}{A single string. It can assume three values: \code{EUR} (the default),
+\code{USD} or \code{LCU}. It refers to the currency in which the final value must be expressed.
+The option \code{LCU} can be chosen only if just one policy site in provided through
+the paramter \code{policy_site}.}
 }
 \value{
 A data frame containing all parameters used and the transfer factor (bt_fct), which
