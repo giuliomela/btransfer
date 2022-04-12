@@ -1,0 +1,129 @@
+---
+title: "btransfer"
+author: "Giulio Mela"
+date: Sys.Date()
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{btransfer}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+bibliography: value_transfer.bib
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, eval=FALSE}
+library(btransfer)
+```
+
+# Benefit transfer `btransfer`
+
+## Introduction {#intro}
+
+The package `btransfer` allows to automatize unit value transfer with income
+adjustment, a technique widely used in environmental and health economics to estimate
+the value of an environmental or health good or service at a so-called _policy site_
+by assigning to it the value of a similar good/service elsewhere, at a _study site_.
+Value transfer methods can be of many different types. This package focuses on the
+most widely used in environmental economics literature: unit value transfer with 
+income adjustment.
+This technique allows to adjust the original estimate taking into account differences
+in income (and therefore also in willingness to pay for the good) between study and
+policy sites. More sophisticated methods - such as function transfer - take into
+consideration a greater number of parameters but are more complicated and
+data-intensive and do not always yield better results.
+The unit value transfer with income adjustment can be performed using the following
+formula:
+
+$$
+V_{pi} = V_{sj}\left(\frac{V_{sj}}{Y_{sj}}\right)^{\epsilon}
+$$
+
+where $V_{pi}$ is the value at the policy site $p$ in year $i$, $V_{sj}$ is the
+value to be transferred at the study site $s$ in year $j$, $Y_{sj}$ is the gross
+domestic product (GDP) per capita in the study site in year $j$, $V_{pi}$ is the
+GDP per capita in the policy site in year $i$ and $\epsilon$ is the income
+elasticity of the willingness to pay for the good.
+GDP per capita is expressed at purchasing power parities and in constant terms to
+consider differences in the general price levels across countries [@Brander2013].
+The demand for most goods and services is a positive function of income: as the 
+latter rises, the former rises accordingly [@Brander2013]. However, such increase is not always
+proportional since, at different income levels, individuals' preferences may change.
+$\epsilon$ can therefore assume different values, depending on income levels.
+@navrud2007a and @Navrud2009 provide insights on the relationship between $\epsilon$
+and income levels: the elasticity of willingness to pay generally decreases as
+income increase as for many normal goods. Following @Navrud2009, $\epsilon$ is assumed
+to be $0.2$ and $0.5$ for high and upper-middle income countries, following the
+World Bank income classification of countries. For lower-middle and low income
+countries - following an email exchange with the same Stale Navrud - $\epsilon$ 
+values of $0.8$ and $1.2$ are assumed.
+Income differences between policy and study sites are not the only variables that
+must be considered when performing a unit value transfer, since primary estimates
+at the study site are usually reported in the study site currency and at the general
+price level for a particular year [@Brander2013]. Therefore, after performing the
+value transfer proper, values must be adjusted for inflation using the GDP deflator
+and, if needed, also by applying appropriate nominal exchange rates.
+The `btransfer` package can perform all these operations for almost any country
+in the world as well as aggregates of countries also for years in the future
+(up to 2050).
+The following sections explain the typical workflow.
+
+## Identify study and policy sites {#study-policy}
+
+The first step of the analysis is to identify from which country the primary
+estimate comes from (study site) and the country(ies) to which such estimate
+must be transferred.
+
+```{r seelcting-countries}
+
+study_site <- "United Kingdom"
+
+policy_site <- c("Italia", "France", "Deutschland", "Polska", "United States")
+
+```
+
+Both `study_site` and `policy_site` can be expressed in any language as `btransfer`
+automatically detects it. `study_site` must be a single string, while `policy_site`
+can also be a vector.
+In case the `study_site` is the world as a whole (i.e. like in the case of  
+greenhouse gas emissions) or the European Union, special strings must be used:
+`WLD` and `EUU` respectively.
+
+## Usage of `bt_transfer`
+
+The main function of the package is `bt_transfer`, which computes transfer factors
+to be multiplied by value that must be transferred in order to perform the value
+transfer. Such factors incorporate the value transfer proper as well as adjustments
+for inflation and exchange rates.
+
+```{r example-base}
+
+bt_transfer(study_site = "EUU", policy_site = policy_site, 
+            study_yr = 2016, policy_yr = 2019, currency = "EUR")
+
+```
+
+The function `bt_transfer` returns a tibble with the key variables used to calculate
+the transfer factor and the transfer factor itself. Other than study and policy
+sites, the user must provide also the year in which the study was carried out 
+(`study_yr`) and the year to which the value must be transferred (`policy_yr`).
+Default values for `study_yr` and `policy_yr` are 2016 and 2019 respectively.
+By default, `bt_transfer` assumes that the value that must be transferred is
+already expressed in euro. In case it is not, an alternative currency can be
+supplied using the argument `currency`. Other than the default `EUR`, the user
+can select US dollars (`USD`) or the local currency of the study site (`LCU`).
+In both cases the transfer factor is adjusted to obtain a value, for the policy
+site, in euro.
+
+```{r example-currency}
+
+bt_transfer(study_site = "Mexico", policy_site = policy_site, 
+            study_yr = 2014, policy_yr = 2020, currency = "LCU")
+
+```
+

@@ -76,6 +76,8 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
   }
 
+  if (!is.element(currency, c("EUR", "USD", "LCU"))) stop("Please provide a valid currency unit: USD, EUR or LCU")
+
   if(policy_yr > 2050) stop("Value transfer can be performed up to 2050 at most")
 
   # defining whether the value transfer is to be performed for a year in the future or not
@@ -121,18 +123,7 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
   # Defining GDP deflator to be used
 
-  if (currency == "EUR") {
-
-    gdp_defl_study <- subset(btransfer::gdp_defl_eurostat, eu_code == "EA" & year == study_yr)$gdp_defl
-
-    # multiplying factor to be used to account for inflation from study to policy year
-
-
-    gdp_defl_fct <- subset(btransfer::gdp_defl_eurostat, eu_code == "EA" &
-                             year == ifelse(policy_yr > latest_av_yr,
-                                            latest_av_yr, policy_yr))$gdp_defl / gdp_defl_study
-
-  } else if (currency == "USD") {
+  if (currency == "USD") {
 
     gdp_defl_study <- subset(btransfer::wb_series, iso3c == "USA" & year == study_yr)$gdp_defl
 
@@ -164,7 +155,20 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
                         year == ifelse(policy_yr > latest_av_yr,
                                        latest_av_yr, policy_yr))$exc_rate
 
-    us_euro <- lcu_us * us_euro
+    us_euro <-  us_euro / lcu_us
+
+  } else if (currency == "EUR") {
+
+    gdp_defl_study <- subset(btransfer::gdp_defl_eurostat, eu_code == "EA" & year == study_yr)$gdp_defl
+
+    # multiplying factor to be used to account for inflation from study to policy year
+
+
+    gdp_defl_fct <- subset(btransfer::gdp_defl_eurostat, eu_code == "EA" &
+                             year == ifelse(policy_yr > latest_av_yr,
+                                            latest_av_yr, policy_yr))$gdp_defl / gdp_defl_study
+
+    us_euro <- 1
 
     }
 
@@ -414,18 +418,10 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
     year <- policy_yr
 
   })
-
-  if (currency == "EUR") {
-
-    bt_fct
-
-  } else if (currency == "USD") {
+  # converting currency if needed
 
     bt_fct$bt_fct <- bt_fct$bt_fct * us_euro
 
     bt_fct
-
-  }
-
 
 }
