@@ -21,6 +21,8 @@
 #' SDR for the ROW (with respect to the selected countries) is provided. Default is "no".
 #' @param eta_lit A double. Value of the elasticity of marginal utility of consumption for non-OECD countries,
 #' that is those for which no tax data are available. This parameter is used also for the ROW estimate.
+#' @param aggregate_name A string. In case the SDR must be calculated for an aggregate, the user can provide
+#' the aggregate name to be displayed in the output tibble. Default is set to "none".
 #' @return A tibble containing country names, Ramsey's equation parameters and
 #'  the social discount rate calculated for the selected countries or aggregates.
 #' @export
@@ -30,16 +32,25 @@
 #'  compute_sdr("Italy", 2018, 15)
 #'  compute_sdr(c("Italia", "Alemania", "France", "Polska", aggregate = "yes"))
 #'  compute_sdr(c("Italia", "Alemania", "France", "Polska", aggregate = "row"))
-compute_sdr <- function(country, policy_yr = 2019, h = 10, aggregate = "no", eta_lit = 1.35){
+compute_sdr <- function(country, policy_yr = 2019, h = 10, aggregate = "no", eta_lit = 1.35,
+                        aggregate_name = "none"){
 
   iso3c <- year <- death_rate <- gdp_capita_growth <- gdp <- pop <- NULL
 
 # Identifying the iso3c codes of the countryies of interest. Names can be provided in any language
 
-  country_iso <- ifelse(length(country) == 1 & country == "WLD",
-                        "WLD",
-                        countrycode::countryname(sourcevar = country,
-                                                 destination = "iso3c"))
+  if (length(country) == 1) {
+
+    country_iso <- ifelse(country == "WLD", "WLD",
+                          countrycode::countryname(sourcevar = country,
+                                                   destination = "iso3c"))
+
+  } else {
+
+  country_iso <- countrycode::countryname(sourcevar = country,
+                                                 destination = "iso3c")
+
+  }
 
 # identifying gdp per capita growth rates
 
@@ -61,6 +72,8 @@ compute_sdr <- function(country, policy_yr = 2019, h = 10, aggregate = "no", eta
 
   gdp_growth <- do.call("rbind", gdp_growth_l)
 
+  rownames(gdp_growth) <- NULL
+
   # computing average ten-year death rate for selected countries
 
   death_rt <- subset(btransfer::wb_series, iso3c %in% country_iso & year > policy_yr - h &
@@ -79,24 +92,26 @@ compute_sdr <- function(country, policy_yr = 2019, h = 10, aggregate = "no", eta
 
   # computing etas
 
-  if (country == 1 & country == "WLD") {
-
-    eta <- eta_lit
-
-  } else {
-
   eta_l <- lapply(country_iso, function(x) compute_eta(x, policy_yr, h, eta_lit))
 
   eta <- do.call("rbind", eta_l)
 
-  }
-
   sdr <- Reduce(merge, list(gdp_growth, death_rt, eta))
 
-  sdr <- transform(sdr,
-                   sdr = death_rt / 1000 + eta * gdp_capita_growth)
+  sdr <- within(sdr, {
 
-  tidyr::as_tibble(sdr)
+    iso3c  <- ifelse(country == "WLD", NA_character_, iso3c)
+    country <- ifelse(country == "WLD", "WLD",
+                     countrycode::countrycode(iso3c, origin = "iso3c",
+                                              destination = "country.name.en"))
+    sdr <- death_rt / 1000 + as.numeric(eta) * gdp_capita_growth
+
+
+  })
+
+  sdr <- sdr[, c("iso3c", "country", "gdp_capita_growth", "death_rt", "eta", "sdr")]
+
+  sdr <- dplyr::as_tibble(sdr)
 
   } else if (aggregate == "yes") { # aggregates analysis
 
@@ -172,13 +187,6 @@ compute_sdr <- function(country, policy_yr = 2019, h = 10, aggregate = "no", eta
 
     eta <- stats::weighted.mean(eta_countries$eta, eta_countries$pop)
 
-
-  # computing the SDR
-
-    sdr <- death_rt / 1000 + eta * gdp_growth
-
-    tidyr::tibble(death_rt = death_rt, eta = eta, gdp_growth = gdp_growth, sdr = sdr)
-
   } else if (aggregate == "row"){ # computes the sdr of the rest of the world (with respect to selected countries)
 
     gdp_pop <- subset(btransfer::wb_series, iso3c %in% c(country_iso, "WLD") & year >= policy_yr - h &
@@ -233,11 +241,29 @@ compute_sdr <- function(country, policy_yr = 2019, h = 10, aggregate = "no", eta
 
     death_rt <- mean(do.call("rbind", death_rt_l))
 
-    # computing SDR (using eta from the literature)
+    # assigning eta the literature value
 
-    sdr <- death_rt / 1000 + eta_lit * gdp_growth
+    eta <- eta_lit
 
-    tidyr::tibble(death_rt = death_rt, eta = eta_lit, gdp_growth = gdp_growth, sdr = sdr)
+
+  }
+
+  # computing SDR
+
+  if (aggregate == "no") {
+
+    sdr
+
+  } else {
+
+  sdr <- death_rt / 1000 + eta * gdp_growth
+
+  country_name <- ifelse(aggregate == "yes", aggregate_name, "ROW")
+
+  tidyr::tibble(iso3c = NA_character_,
+                country = country_name, gdp_capita_growth = gdp_growth,
+                death_rt = death_rt,
+                eta = eta_lit, sdr = sdr)
 
   }
 

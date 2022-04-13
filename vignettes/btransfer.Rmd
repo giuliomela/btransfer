@@ -222,7 +222,48 @@ rate for any country in the world or aggregate of countries.
 
 ```{r example-sdr, echo=TRUE}
 
-compute_sdr(country = )
+# The SDR calculated for a single country
+
+compute_sdr(country = "Italy", policy_yr = 2019, h = 10)
 
 ```
 
+The parameter `policy_yr` refers to the year in which the evaluation must take 
+place: it cannot be a year into the future. The parameter `h` indicates the 
+length of the time window over which computing key parameters.
+One of the key parameters in the Ramsey's equation is the the elasticity of
+marginal utility of consumption ($\eta$), which can be computed from tax data, 
+for the countries for which such data are available. When such data are not
+available an average value from the literature is used ($\eta = 1.35$). Such
+literature value is used also for the world as a whole. For aggregates $\eta$
+is calculated as a weighted average of country-specific $\eta$ using population
+data as weights.
+
+```{r example-sdr2, echo=TRUE}
+
+# SDR calculated for the World as a whole
+
+compute_sdr(country = "WLD", policy_yr = 2019, h = 10)
+
+
+```
+
+```{r example-sdr3, echo=TRUE}
+
+# SDR calculated for an aggregate of countries
+
+compute_sdr(country = nos, policy_yr = 2019, h = 10,
+            aggregate = "yes", aggregate_name = "North Sea")
+
+```
+
+```{r example-sdr4, echo=TRUE}
+
+# SDR calculated for the rest of the world, given an aggregate of countries
+
+compute_sdr(country = nos, policy_yr = 2019, h = 10,
+            aggregate = "row")
+
+```
+
+# References {-}

@@ -9,6 +9,7 @@ License: MIT + file LICENSE
 URL: https://github.com/giuliomela/btransfer.git
 Imports: 
     countrycode,
+    devtools,
     dplyr,
     OECD,
     Rdpack,

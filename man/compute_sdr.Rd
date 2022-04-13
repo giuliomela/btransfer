@@ -9,7 +9,8 @@ compute_sdr(
   policy_yr = 2019,
   h = 10,
   aggregate = "no",
-  eta_lit = 1.35
+  eta_lit = 1.35,
+  aggregate_name = "none"
 )
 }
 \arguments{
@@ -28,6 +29,9 @@ SDR for the ROW (with respect to the selected countries) is provided. Default is
 
 \item{eta_lit}{A double. Value of the elasticity of marginal utility of consumption for non-OECD countries,
 that is those for which no tax data are available. This parameter is used also for the ROW estimate.}
+
+\item{aggregate_name}{A string. In case the SDR must be calculated for an aggregate, the user can provide
+the aggregate name to be displayed in the output tibble. Default is set to "none".}
 }
 \value{
 A tibble containing country names, Ramsey's equation parameters and

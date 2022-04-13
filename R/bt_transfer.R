@@ -61,7 +61,7 @@
 #'
 #' @examples
 #' bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"))
-#' bt_transfer(study_site = "United States", policy_site = "Italia", currency = "USD")
+#' bt_transfer(study_site = "United States", policy_site = "Italia", policy_currency = "USD")
 #' bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"),
 #' aggregate = "yes")
 #' bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"),
