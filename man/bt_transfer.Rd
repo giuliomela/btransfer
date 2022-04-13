@@ -89,4 +89,7 @@ bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"
 aggregate = "row")
 bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"),
 policy_yr = 2030, aggregate = "row")
+bt_transfer(policy_site = c("Italia", "Allemagne"), study_currency = "USD",
+policy_currency = "EUR")
+bt_transfer(policy_site = "Mexico", study_currency = "USD", policy_currency = "LCU")
 }

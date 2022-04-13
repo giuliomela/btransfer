@@ -65,6 +65,9 @@
 #' aggregate = "row")
 #' bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"),
 #' policy_yr = 2030, aggregate = "row")
+#' bt_transfer(policy_site = c("Italia", "Allemagne"), study_currency = "USD",
+#' policy_currency = "EUR")
+#' bt_transfer(policy_site = "Mexico", study_currency = "USD", policy_currency = "LCU")
 bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, policy_yr = 2019,
                          aggregate = "no", study_currency = "EUR",  policy_currency = "EUR") {
 
@@ -173,18 +176,25 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
   } else {
 
-  cur_study <- dplyr::case_when(
-    study_currency == "EUR" ~ "EMU",
-    study_currency == "USD" ~ "USA",
-    TRUE ~ ifelse(iso_study == "EUU", "EMU", iso_study)
-  )
+    cur_study <- dplyr::case_when(
+      study_currency == "EUR" ~ "EMU",
+      study_currency == "USD" ~ "USA",
+      TRUE ~ ifelse(iso_study == "EUU", "EMU", iso_study)
+    )
+
+    if (length(iso_policy) > 1){
+
+      cur_policy <- ifelse(policy_currency == "EUR", "EMU", "USA")
+
+    } else {
 
   cur_policy <- dplyr::case_when(
     policy_currency == "EUR" ~ "EMU",
     policy_currency == "USD" ~ "USA",
-    TRUE ~ ifelse(iso_policy == "EUU", "EMU", iso_policy)
+    study_currency == "LCU" ~ ifelse(iso_policy == "EUU", "EMU", iso_policy)
   )
 
+    }
 
   exc_rates <- subset(btransfer::wb_series, iso3c %in% c(cur_study, cur_policy) &
                         year == ifelse(policy_yr > latest_av_yr,
@@ -442,6 +452,7 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
   bt_fct <- within(bt_fct, { # value transfer factors adjusted for inflation
 
+    country = countrycode::countrycode(iso3c, origin = "iso3c", destination = "country.name.en")
     bt_fct <- ((gdp_capita / study_site_gdp)^epsilon) * gdp_defl_fct
     year <- policy_yr
 

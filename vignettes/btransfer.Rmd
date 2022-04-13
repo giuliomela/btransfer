@@ -18,6 +18,8 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup, eval=FALSE}
+install.packages("btransfer")
+
 library(btransfer)
 ```
 
@@ -104,7 +106,8 @@ for inflation and exchange rates.
 ```{r example-base}
 
 bt_transfer(study_site = "EUU", policy_site = policy_site, 
-            study_yr = 2016, policy_yr = 2019, currency = "EUR")
+            study_yr = 2016, policy_yr = 2019, policy_currency = "EUR",
+            study_currency = "EUR")
 
 ```
 
@@ -114,16 +117,21 @@ sites, the user must provide also the year in which the study was carried out
 (`study_yr`) and the year to which the value must be transferred (`policy_yr`).
 Default values for `study_yr` and `policy_yr` are 2016 and 2019 respectively.
 By default, `bt_transfer` assumes that the value that must be transferred is
-already expressed in euro. In case it is not, an alternative currency can be
-supplied using the argument `currency`. Other than the default `EUR`, the user
-can select US dollars (`USD`) or the local currency of the study site (`LCU`).
-In both cases the transfer factor is adjusted to obtain a value, for the policy
-site, in euro.
+already expressed in euro. In case it is not, alternative currencies can be
+supplied by the user using the arguments `study_currency` and `policy_currency`.
+Other than the default `EUR`, the user can select US dollars (`USD`) or the currency
+of study and policy sites (`LCU`). This latter option, however, can be used only
+if just one policy site is selected.
 
-```{r example-currency}
+```{r example-currency, eval=FALSE}
 
-bt_transfer(study_site = "Mexico", policy_site = policy_site, 
-            study_yr = 2014, policy_yr = 2020, currency = "LCU")
+bt_transfer(study_site = "Australia", policy_site = policy_site, 
+            study_yr = 2014, policy_yr = 2020, study_currency = "USD",
+            policy_currency = "EUR")
+
+bt_transfer(study_site = "Mexico", policy_site = "India", 
+            study_yr = 2014, policy_yr = 2020, study_currency = "LCU",
+            policy_currency = "LCU")
 
 ```
 
