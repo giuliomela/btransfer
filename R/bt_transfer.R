@@ -51,7 +51,10 @@
 #' \code{USD} or \code{LCU}. It refers to the currency in which the final value must be expressed.
 #' The option \code{LCU} can be chosen only if just one policy site in provided through
 #' the paramter \code{policy_site}.
-#' @return A data frame containing all parameters used and the transfer factor (bt_fct), which
+#' @param aggregate_name A single string. In case the value transfer must be perfomed
+#' for an aggregate of countries, a name can be provided to be displayed in the
+#' output.
+#' @return A tibble containing all parameters used and the transfer factor (bt_fct), which
 #' is the scalar which the original value must be multiplied by to perform the transfer. Such
 #' factor is already adjusted for inflation.
 #' @export
@@ -69,7 +72,8 @@
 #' policy_currency = "EUR")
 #' bt_transfer(policy_site = "Mexico", study_currency = "USD", policy_currency = "LCU")
 bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, policy_yr = 2019,
-                         aggregate = "no", study_currency = "EUR",  policy_currency = "EUR") {
+                         aggregate = "no", study_currency = "EUR",  policy_currency = "EUR",
+                         aggregate_name = "none") {
 
   iso3c <- eu_code <- gdp_capita <- income_class <- gni_agg <- gni_row <- NULL
 
@@ -91,6 +95,8 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
   if (length(policy_site) > 1 & policy_currency == "LCU") stop("The option policy currency can be set to LCU only if just one policy site is selected.
                                                                Please retry indicating just one policy site")
+
+  if (aggregate %in% c("yes", "row") & policy_currency == "LCU") stop("For aggregates, the option policy currency can be set to either EUR or USD only")
 
   if(policy_yr > 2050) stop("Value transfer can be performed up to 2050 at most")
 
@@ -452,15 +458,45 @@ bt_transfer <- function (study_site = "EUU", policy_site, study_yr = 2016, polic
 
   bt_fct <- within(bt_fct, { # value transfer factors adjusted for inflation
 
-    country = countrycode::countrycode(iso3c, origin = "iso3c", destination = "country.name.en")
     bt_fct <- ((gdp_capita / study_site_gdp)^epsilon) * gdp_defl_fct
     year <- policy_yr
 
   })
+
+  # including country names
+
+  if (aggregate == "no" & length(policy_site) > 1) {
+
+    bt_fct$country <- countrycode::countrycode(bt_fct$iso3c,
+                                               origin = "iso3c", destination = "country.name.en")
+
+  } else if (aggregate == "no" & length(policy_site) == 1) {
+
+    bt_fct$country <- ifelse(policy_site == "WLD", "World",
+                             countrycode::countrycode(bt_fct$iso3c,
+                                                      origin = "iso3c", destination = "country.name.en"))
+
+  } else if ( aggregate == "yes") {
+
+    bt_fct$iso3c <- NA_character_
+    bt_fct$country <- ifelse(aggregate_name == "none", "Aggregate",
+                             aggregate_name)
+
+  } else if (aggregate == "row") {
+
+    bt_fct$iso3c <- NA_character_
+    bt_fct$country <- "ROW"
+
+  }
+
   # converting currency if needed
 
     bt_fct$bt_fct <- bt_fct$bt_fct * exc_rate_fct
 
-    bt_fct
+  # selecting and reordering columns
+
+    bt_fct <- bt_fct[, c("iso3c", "country", "year", "gdp_capita", "epsilon", "bt_fct")]
+
+    dplyr::as_tibble(bt_fct)
 
 }

@@ -1,7 +1,7 @@
 ---
 title: "btransfer"
 author: "Giulio Mela"
-date: Sys.Date()
+date: "`r format(Sys.time(), '%d - %m - %Y')`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{btransfer}
@@ -17,13 +17,11 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup, eval=FALSE}
-install.packages("btransfer")
-
-library(btransfer)
+```{r, include=FALSE}
+devtools::load_all(".")
 ```
 
-# Benefit transfer `btransfer`
+# Value transfer `btransfer`
 
 ## Introduction {#intro}
 
@@ -72,7 +70,17 @@ value transfer proper, values must be adjusted for inflation using the GDP defla
 and, if needed, also by applying appropriate nominal exchange rates.
 The `btransfer` package can perform all these operations for almost any country
 in the world as well as aggregates of countries also for years in the future
-(up to 2050).
+(up to 2050). It can be installed from GitHub as follows:
+
+```{r install, eval = FALSE}
+
+# Install from GitHub
+
+devtools::install_github("https://github.com/giuliomela/btransfer")
+
+```
+
+
 The following sections explain the typical workflow.
 
 ## Identify study and policy sites {#study-policy}
@@ -103,7 +111,9 @@ to be multiplied by value that must be transferred in order to perform the value
 transfer. Such factors incorporate the value transfer proper as well as adjustments
 for inflation and exchange rates.
 
-```{r example-base}
+```{r example-base, echo=TRUE}
+
+# Value transfer to the EU to some individual countries. No currency conversion.
 
 bt_transfer(study_site = "EUU", policy_site = policy_site, 
             study_yr = 2016, policy_yr = 2019, policy_currency = "EUR",
@@ -123,15 +133,96 @@ Other than the default `EUR`, the user can select US dollars (`USD`) or the curr
 of study and policy sites (`LCU`). This latter option, however, can be used only
 if just one policy site is selected.
 
-```{r example-currency, eval=FALSE}
+```{r example-currency, echo=TRUE}
+
+# The primary value is expressed in USD, but must be converted to euro
 
 bt_transfer(study_site = "Australia", policy_site = policy_site, 
             study_yr = 2014, policy_yr = 2020, study_currency = "USD",
             policy_currency = "EUR")
 
+```
+
+```{r example-currency2, echo=TRUE}
+
+# The primary value is expressed in the study country's currency and must be
+# converted to the currency of the policy country
+
 bt_transfer(study_site = "Mexico", policy_site = "India", 
             study_yr = 2014, policy_yr = 2020, study_currency = "LCU",
             policy_currency = "LCU")
+
+```
+
+
+Both the `study_site` and the `policy_site` parameters can be set to `WLD`, if
+the study and/or the policy sites are the world as a whole. This option is
+useful especially when one has to transfer cost factors related to externalities
+at global level, such as the impact of air pollution on the climate.
+Other than for individual countries, transfer factors can be calculated also for
+aggregates of countries, using the parameter `aggregate`. Such parameter can assume
+three values: `no` (the default), `yes` and `row`. In case `yes` is selected,
+the transfer factor is calculated for the aggregate made up by the list of 
+countries supplied through `policy_site`. Conversely, when `row` is selected,
+the transfer factor is calculated for the rest-of-the-world aggregate obtained
+subtracting the selected countries from the world total. When `aggregate` is set
+to either `yes` or `row`, the parameter `policy_currency` can be set to `EUR` or
+`USD` only.
+
+```{r example-aggregates, echo=TRUE}
+
+# The study site is the world as a whole. Original estimate in USD, but value
+# must be converted to euro.
+
+# defining the countries that make up the aggregate
+nos <- c("France", "United Kingdom", "Belgium", "Netherlands",
+         "Denmark", "Norway", "Germany") # North Sea countries
+
+bt_transfer(study_site = "WLD", policy_site = policy_site, 
+            study_yr = 2014, policy_yr = 2020, study_currency = "USD",
+            policy_currency = "EUR", aggregate = "yes",
+            aggregate_name = "North Sea")
+
+
+```
+
+In scenario evaluation and cost-benefit analysis might be needed to perform a 
+value transfer to a year into the future. The function `bt_transfer` can
+accomplish that. The user only has to set `policy_yr` to a year into the future
+(up to 2050). GDP per capita and $\epsilon$ for the policy site(s) are estimated
+using the the average GDP and GNI per capita growth rates of the last $n$ year,
+where $n$ is the number of year between the current year (latest year for which
+data are available) and the policy year. For aggregates, GDP and GNI per capita
+growth rates are estimated from GNI, GDP and population data and their average
+growth rates.
+
+```{r example-future, echo=TRUE}
+
+# The policy year is in the future
+
+bt_transfer(study_site = "WLD", policy_site = policy_site, 
+            study_yr = 2014, policy_yr = 2030, study_currency = "USD",
+            policy_currency = "EUR", aggregate = "no")
+
+
+```
+
+## Usage of `compute_sdr`
+
+In cost-benefit analysis and, more in general, in any kind of analysis that
+involves the estimation of monetary values referring to a given moment into the
+future, it is important to consider the opportunity cost of capital from an
+inter-temporal perspective for the society as a whole. In other words, the 
+social discount rate (SDR) is a measure of how the society evaluates future
+costs/benefits with respect to present ones [@EuropeanCommission2014].
+The empirical estimation of the SDR can be performed in several ways, although
+the most commonly used is through the formula provided by Ramsey [@ramsey1928].
+The function `compute_sdr` accomplishes that and calculates the social discount
+rate for any country in the world or aggregate of countries.
+
+```{r example-sdr, echo=TRUE}
+
+compute_sdr(country = )
 
 ```
 

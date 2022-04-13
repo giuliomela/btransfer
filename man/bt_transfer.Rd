@@ -11,7 +11,8 @@ bt_transfer(
   policy_yr = 2019,
   aggregate = "no",
   study_currency = "EUR",
-  policy_currency = "EUR"
+  policy_currency = "EUR",
+  aggregate_name = "none"
 )
 }
 \arguments{
@@ -49,9 +50,13 @@ respectively.}
 \code{USD} or \code{LCU}. It refers to the currency in which the final value must be expressed.
 The option \code{LCU} can be chosen only if just one policy site in provided through
 the paramter \code{policy_site}.}
+
+\item{aggregate_name}{A single string. In case the value transfer must be perfomed
+for an aggregate of countries, a name can be provided to be displayed in the
+output.}
 }
 \value{
-A data frame containing all parameters used and the transfer factor (bt_fct), which
+A tibble containing all parameters used and the transfer factor (bt_fct), which
 is the scalar which the original value must be multiplied by to perform the transfer. Such
 factor is already adjusted for inflation.
 }

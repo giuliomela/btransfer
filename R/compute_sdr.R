@@ -12,6 +12,8 @@
 #'
 #' @param country A string vector of country names (in any language, see \code{\link[countrycode]{countryname}} package for details).
 #' In case \code{aggregate = TRUE}, the list of countries is used to compute the SDR for that group of countries.
+#' If \code{WLD} is provided, the SDR for the world as a whole is calculated, using an estimate of eta from
+#' the literature (see parameter \code{eta_lit}).
 #' @param policy_yr A double: the policy year, meant as the year to which the analysis refers. Default is 2019.
 #' @param h A double: number of years over which calculate Ramsey's rule parameters. Default is 10.
 #' @param aggregate A string that can assume three values. If "no", individual SDR for the selected countries  are
@@ -33,8 +35,11 @@ compute_sdr <- function(country, policy_yr = 2019, h = 10, aggregate = "no", eta
   iso3c <- year <- death_rate <- gdp_capita_growth <- gdp <- pop <- NULL
 
 # Identifying the iso3c codes of the countryies of interest. Names can be provided in any language
-  country_iso <- countrycode::countryname(sourcevar = country,
-                                  destination = "iso3c")
+
+  country_iso <- ifelse(length(country) == 1 & country == "WLD",
+                        "WLD",
+                        countrycode::countryname(sourcevar = country,
+                                                 destination = "iso3c"))
 
 # identifying gdp per capita growth rates
 
@@ -74,9 +79,17 @@ compute_sdr <- function(country, policy_yr = 2019, h = 10, aggregate = "no", eta
 
   # computing etas
 
+  if (country == 1 & country == "WLD") {
+
+    eta <- eta_lit
+
+  } else {
+
   eta_l <- lapply(country_iso, function(x) compute_eta(x, policy_yr, h, eta_lit))
 
   eta <- do.call("rbind", eta_l)
+
+  }
 
   sdr <- Reduce(merge, list(gdp_growth, death_rt, eta))
 
