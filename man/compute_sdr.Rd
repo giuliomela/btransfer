@@ -16,8 +16,8 @@ compute_sdr(
 \arguments{
 \item{country}{A string vector of country names (in any language, see \code{\link[countrycode]{countryname}} package for details).
 In case \code{aggregate = TRUE}, the list of countries is used to compute the SDR for that group of countries.
-If \code{WLD} is provided, the SDR for the world as a whole is calculated, using an estimate of eta from
-the literature (see parameter \code{eta_lit}).}
+The user can select also the world or the European Union by providing the name in either English,
+French, Italian, Spanish, Portuguese, German or Dutch.}
 
 \item{policy_yr}{A double: the policy year, meant as the year to which the analysis refers. Default is 2019.}
 

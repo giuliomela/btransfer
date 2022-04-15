@@ -19,8 +19,7 @@ and marginal tax rates, over an h-long period of time.}
 to be used, tipically for non-OECD countries.}
 }
 \value{
-A dataframe of 2 variables. The ISO3 code of the country and the
-estimate of the elasticity of marginal utility of consumption
+A double. The estimate of the elasticity of marginal utility of consumption
 for the selected country, over an h-long period starting backwards from \code{policy_yr}
 }
 \description{

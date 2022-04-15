@@ -5,7 +5,7 @@
 \title{Computing transfer factors for unit value transfer with income adjustment}
 \usage{
 bt_transfer(
-  study_site = "EUU",
+  study_site = "European Union",
   policy_site,
   study_yr = 2016,
   policy_yr = 2019,
@@ -80,7 +80,7 @@ transfer techniques can be found in Navrud and Ready (2007).
 The function works also in case policy year is set to a future year. Parameters like
 GDP per capita and GNI per capita (Needed to identify the appropriate epsilon)
 are calculated, for the policy year in the future, using average growth rates
-of the last n-year period. In this case, n (the lenght of the time window over
+of the last n-year period. In this case, n (the length of the time window over
 which the growth averages are calculated) is equal to the time horizon defined
 by the policy year (i.e. if the policy year is 2030 and the last year with
 available data is 2020, the horizon is set to 10 years).

@@ -13,6 +13,10 @@ country_list <- country_list[country_list$region != "Aggregates", ]$iso3c
 # loading income classification
 income_class <- read.csv(here::here("data-raw/income_class.csv"), sep = ";")
 
+# building a database with epsilon associated to income levels
+
+
+
 # downloading data from the world bank database
 
 wb_series <- wbstats::wb_data(c("NY.GDP.PCAP.PP.KD", "NY.GDP.MKTP.PP.KD",
@@ -40,16 +44,26 @@ wb_series$gni <- wb_series$gni * wb_series$defl_fct
 
 wb_series$defl_fct <- NULL
 
-# downloading wb data growth rates (for benefit transfers to the future)
+# computing GNI per capita
 
-wb_growth <- wbstats::wb_data(c("NY.GDP.PCAP.KD.ZG", "SP.POP.GROW",
-                                "NY.GNP.MKTP.KD.ZG", "NY.GDP.MKTP.KD.ZG"),
-                              country = c("all", "WLD", "EUU"))
+wb_series$gni_capita <- wb_series$gni / wb_series$pop
 
-names(wb_growth) <- c("iso2c", "iso3c", "country", "year", "gdp_growth", "gdp_capita_growth",
-                      "gni_growth", "pop_growth")
+wb_series <- dplyr::as_tibble(wb_series)
 
-wb_growth <- wb_growth[, -1]
+# Computing growth rates
+
+selected_series <- wb_series[, c("year", "iso3c", "gdp", "gdp_capita", "gni", "gni_capita", "pop")]
+
+wb_growth_g <- dplyr::group_by(selected_series, iso3c)
+
+wb_growth <- dplyr::mutate(wb_growth_g, dplyr::across(gdp:pop, compute_growth_rate,
+                                                      .names = "{.col}_growth"))
+
+wb_growth <- dplyr::ungroup(wb_growth)
+
+wb_growth <- dplyr::select(wb_growth, c(year, iso3c, dplyr::ends_with("growth")))
+
+wb_growth <- dplyr::arrange(wb_growth, iso3c, year)
 
 # downloading Euro Area gdp deflator
 
@@ -60,30 +74,6 @@ gdp_defl_eurostat <- gdp_defl_eurostat[, -c(1,2)]
 
 names(gdp_defl_eurostat) <- c("eu_code", "year", "gdp_defl")
 
-# Downloading WB income classification
-
-income_lvs <- wbstats::wb_countries()[, c("iso3c", "income_level_iso3c", "income_level")]
-
-income_lvs <- subset(income_lvs, !is.na(income_level_iso3c))
-
-# computing income level for the world aggregate
-
-gni_capita_wld <- subset(wb_series, iso3c == "WLD" & year == latest_yr)
-
-gni_capita_wld <- gni_capita_wld$gni /gni_capita_wld$pop
-
-epsilon_agg <- income_class
-
-epsilon_agg$gni_wld <- ifelse(gni_capita_wld < income_class$max & gni_capita_wld >= income_class$min,
-                              TRUE, FALSE)
-
-income_class_wld <- data.frame(iso3c = "WLD",
-                               income_level_iso3c = epsilon_agg[epsilon_agg$gni_wld == TRUE, ]$income_level_iso3c,
-                               income_level = epsilon_agg[epsilon_agg$gni_wld == TRUE, ]$income_level)
-
-income_lvs <- rbind(income_lvs, income_class_wld)
-
-# Computing etas for benefit transfer
 
 # downloading taxation data from OECD (to be used in SDR calculation)
 # Taxing Wages - Comparative tables ID: AWCOMP
@@ -104,7 +94,7 @@ tax_data <- within(tax_data,{
 tax_data <- subset(tax_data, select = c(iso3c, year, indicator, value))
 
 
-usethis::use_data(income_class, wb_series, gdp_defl_eurostat, income_lvs, wb_growth, tax_data,
+usethis::use_data(income_class, wb_series, gdp_defl_eurostat, wb_growth, tax_data,
                   country_list,
                   overwrite = TRUE)
 

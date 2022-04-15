@@ -12,8 +12,8 @@
 #'
 #' @param country A string vector of country names (in any language, see \code{\link[countrycode]{countryname}} package for details).
 #' In case \code{aggregate = TRUE}, the list of countries is used to compute the SDR for that group of countries.
-#' If \code{WLD} is provided, the SDR for the world as a whole is calculated, using an estimate of eta from
-#' the literature (see parameter \code{eta_lit}).
+#' The user can select also the world or the European Union by providing the name in either English,
+#' French, Italian, Spanish, Portuguese, German or Dutch.
 #' @param policy_yr A double: the policy year, meant as the year to which the analysis refers. Default is 2019.
 #' @param h A double: number of years over which calculate Ramsey's rule parameters. Default is 10.
 #' @param aggregate A string that can assume three values. If "no", individual SDR for the selected countries  are
@@ -39,58 +39,36 @@ compute_sdr <- function(country, policy_yr = 2019, h = 10, aggregate = "no", eta
 
 # Identifying the iso3c codes of the countryies of interest. Names can be provided in any language
 
-  if (length(country) == 1) {
-
-    country_iso <- ifelse(country == "WLD", "WLD",
-                          countrycode::countryname(sourcevar = country,
-                                                   destination = "iso3c"))
-
-  } else {
-
-  country_iso <- countrycode::countryname(sourcevar = country,
-                                                 destination = "iso3c")
-
-  }
+  country_iso <- iso_codes(country)
 
 # identifying gdp per capita growth rates
 
   if (aggregate == "no") {
 
-  # Computing average growth rates
+    sdr_data <- dplyr::tibble(iso3c = country_iso)
 
-  gdp_growth <- subset(btransfer::wb_growth, iso3c %in% country_iso & year > policy_yr - h &
-           year <= policy_yr)
+    sdr_data$gdp_capita_growth <- sapply(sdr_data$iso3c, function (x) {
 
-  gdp_growth_l <- split(gdp_growth, gdp_growth$iso3c)
+      compute_avg(x, start_yr = policy_yr - h, end_yr = policy_yr, var = "gdp_capita", type = "growth_rt")
 
-  gdp_growth_l <- lapply(gdp_growth_l, function (x) {
+    })
 
-    data.frame(iso3c = unique(x$iso3c),
-               gdp_capita_growth = mean(x$gdp_capita_growth, na.rm = TRUE) / 100)
+    # adding death rates
 
-  })
+    sdr_data$death_rt <- sapply(sdr_data$iso3c, function (x) {
 
-  gdp_growth <- do.call("rbind", gdp_growth_l)
+      compute_avg(x, start_yr = policy_yr - h, end_yr = policy_yr, var = "death_rate")
 
-  rownames(gdp_growth) <- NULL
-
-  # computing average ten-year death rate for selected countries
-
-  death_rt <- subset(btransfer::wb_series, iso3c %in% country_iso & year > policy_yr - h &
-                       year <= policy_yr, select = c(iso3c, year, death_rate))
-
-  death_rt_l <- split(death_rt, death_rt$iso3c)
-
-  death_rt_l <- lapply(death_rt_l, function(x){
-    data.frame(iso3c = unique(x$iso3c),
-               death_rt = mean(x$death_rate, na.rm = TRUE))
-  })
-
-  death_rt <- do.call("rbind", death_rt_l)
-
-  rownames(death_rt) <- NULL
+    })
 
   # computing etas
+
+  sdr_data$eta <- sapply(sdr_data$iso3c, function(x){
+
+    compute_eta(x, policy_yr, h, eta_lit)
+
+  })
+
 
   eta_l <- lapply(country_iso, function(x) compute_eta(x, policy_yr, h, eta_lit))
 

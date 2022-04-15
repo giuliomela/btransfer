@@ -12,8 +12,7 @@
 #' @param h A double. Number of the years oever which computing average values.
 #' @param eta_lit A double. A custom value for \code{eta}, in case a literature value needs
 #' to be used, tipically for non-OECD countries.
-#' @return A dataframe of 2 variables. The ISO3 code of the country and the
-#' estimate of the elasticity of marginal utility of consumption
+#' @return A double. The estimate of the elasticity of marginal utility of consumption
 #' for the selected country, over an h-long period starting backwards from \code{policy_yr}
 #' @export
 #'
@@ -43,7 +42,7 @@ compute_eta <- function(iso_code, policy_yr, h, eta_lit) {
 
   }
 
-  data.frame(iso3c = iso_code, eta = eta)
+  eta
 
 }
 

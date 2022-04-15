@@ -16,6 +16,7 @@
 #' \item{gni}{GNI at constant prices (converted from current with US GDP deflator, base year = yea rused by the WB for income classification), Atlas method (Wb code: NY.GNP.ATLS.CD)}
 #' \item{exc_rate}{Exchange rate, USD per LCU (WB code: PA.NUS.FCRF)}
 #' \item{pop}{Total population (WB code: SP.POP.TOTL)}
+#' \item{gni_capita}{Gross national income per capita obtained dividing gni by pop}
 #' }
 #' @source \url{https://data.worldbank.org/}
 "wb_series"
