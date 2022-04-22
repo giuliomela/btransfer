@@ -118,7 +118,7 @@ bt_transfer <- function (study_site = "European Union", policy_site, study_yr = 
 
   # Defining gdp per capita data of the study site
 
-  study_site_gdp <- subset(btransfer::wb_series, iso3c == iso_study & year == study_yr)$gdp_capita
+  study_site_gdp <- compute_macro_var(iso_study, study_yr)
 
   # Defining GDP deflator to be used
 
@@ -183,50 +183,21 @@ bt_transfer <- function (study_site = "European Union", policy_site, study_yr = 
         })
       }
 
-      bt_fct$epsilon <- sapply(bt_fct$gni_capita, compute_epsilon) #adds a column with epsilon
-
-  } else if (aggregate == "yes") { # if the BT must be performed towards an aggregate
+  } else { # if the BT must be performed towards an aggregate
 
     bt_fct <- dplyr::tibble(year = policy_yr)
 
     # adding gdp ang gni per capita
 
-    for (i in c("gdp", "gni")) {
-
-      col_name <- paste0(i, "_capita")
-
-      bt_fct[[col_name]] <- sum(sapply(iso_policy, function (x){
-        compute_macro_var(x, ref_year = policy_yr, var = i)}), na.rm = TRUE) /
-          sum(sapply(iso_policy, function (x){
-            compute_macro_var(x, ref_year = policy_yr, var = "pop")
-      }), na.rm = TRUE)
+    for (i in c("gdp_capita", "gni_capita")) {
+      bt_fct[[i]] <- compute_macro_var(iso_policy, ref_year = policy_yr, var = i, agg = aggregate)
     }
-
-    bt_fct$epsilon <- compute_epsilon(bt_fct$gni_capita)
-
-  } else if (aggregate == "row"){ # if the policy sit is the ROW (world minus countries provided)
-
-    # defining macro-economic variables for the world
-    wld_vars <- sapply(c("gdp", "gni", "pop"), function (x) {
-      compute_macro_var("WLD", ref_year = policy_yr, var = x)
-    })
-
-    bt_fct <- dplyr::tibble(year = policy_yr)
-
-    for (i in c("gdp", "gni")) {
-
-      col_name <- paste0(i, "_capita")
-
-      bt_fct[[col_name]] <- (wld_vars[[i]] - sum(sapply(iso_policy, function (x){
-        compute_macro_var(x, ref_year = policy_yr, var = i)}), na.rm = TRUE)) /
-      (wld_vars[["pop"]] - sum(sapply(iso_policy, function (x){
-        compute_macro_var(x, ref_year = policy_yr, var = "pop")
-      }), na.rm = TRUE))
-    }
-
-    bt_fct$epsilon <- compute_epsilon(bt_fct$gni_capita)
 
   }
+
+    # adding epsilon
+
+    bt_fct$epsilon <- sapply(bt_fct$gni_capita, compute_epsilon)
 
 # computing the value transfer factor, including adjustment for inflation
 

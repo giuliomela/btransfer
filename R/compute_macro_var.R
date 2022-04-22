@@ -53,7 +53,9 @@ if (ref_year <= last_yr) {
 
   } else {
 
-    alt_var <- stringr::str_remove(var, "_capita")
+    alt_var <- ifelse(var == "death_rate",
+                      "deaths",
+                      stringr::str_remove(var, "_capita"))
 
     alt_country_iso <- c("WLD", country_iso)
 
@@ -71,7 +73,7 @@ if (ref_year <= last_yr) {
 
     }
 
-    if (var %in% c("gdp_capita", "gni_capita")) {
+    if (var %in% c("gdp_capita", "gni_capita", "death_rate")) {
 
       value <- sum(alt_db[[alt_var]], na.rm = TRUE) / sum(alt_db[["pop"]], na.rm = TRUE)
 
@@ -116,6 +118,10 @@ if (ref_year <= last_yr) {
                                 all_values[[i]])
 
     }
+
+    } else {
+
+      all_values <- all_values[all_values$iso3c != "WLD", ]
 
     }
 

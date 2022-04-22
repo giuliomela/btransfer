@@ -15,7 +15,8 @@ compute_sdr(
 }
 \arguments{
 \item{country}{A string vector of country names (in any language, see \code{\link[countrycode]{countryname}} package for details).
-In case \code{aggregate = TRUE}, the list of countries is used to compute the SDR for that group of countries.
+In case \code{aggregate = "yes"} or \code{aggregate = "row"}, the list of countries is
+used to compute the SDR for that group of countries or for the rest of the world respectively.
 The user can select also the world or the European Union by providing the name in either English,
 French, Italian, Spanish, Portuguese, German or Dutch.}
 

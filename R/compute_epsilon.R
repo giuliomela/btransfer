@@ -16,8 +16,8 @@ compute_epsilon <- function (gni_capita) {
 
   epsilon_db <- btransfer::income_class
 
-  epsilon_db$true_false <- ifelse(gni_capita < btransfer::income_class$max &
-                                    gni_capita >= btransfer::income_class$min,
+  epsilon_db$true_false <- ifelse(gni_capita < epsilon_db$max &
+                                    gni_capita >= epsilon_db$min,
          TRUE, FALSE)
 
   epsilon_db[epsilon_db$true_false == TRUE, ]$epsilon

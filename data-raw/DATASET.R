@@ -28,6 +28,8 @@ names(wb_series) <- c("iso2c", "iso3c", "country", "year", "gdp_defl", "gdp", "g
 
 wb_series <- wb_series[, -1]
 
+wb_series$deaths <- wb_series$death_rate * wb_series$pop
+
 # expressing gni in USD at the price levels by the WB for latest income classification
 
 defl_fct <- subset(wb_series, iso3c == "USA", select = c(year, gdp_defl))
