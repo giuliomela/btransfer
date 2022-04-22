@@ -4,19 +4,25 @@
 \alias{compute_macro_var}
 \title{Returns macro-economic variables for selected countries and years}
 \usage{
-compute_macro_var(country_iso, ref_year, var = "gdp_capita")
+compute_macro_var(country_iso, ref_year, var = "gdp_capita", agg = "no")
 }
 \arguments{
 \item{country_iso}{A string. The ISO code (3 digits) of the country of interest.
 Codes \code{WLD} and \code{EUU} stand for the world and the European Union
-respectively.}
+respectively. In case \code{agg} is set to either \code{yes} or \code{row}
+more than one iso code can be provided.}
 
 \item{ref_year}{A double. Year of interest. Can be a year into the future up
 to 2050. Years before 1961 are not accepted neither.}
 
 \item{var}{A string. The name of the macro-economic variable to be extracted.
 It can assume the following values: \code{gdp}, \code{gdp_capita}, \code{gni},
-\code{pop} and \code{gni_capita}, \code{death_rate}.}
+\code{pop}, \code{gni_capita} and \code{death_rate}.}
+
+\item{agg}{A string. It can assume three values: \code{no}, the default, \code{yes}
+and \code{row}. Indicates whether the variable of interest must be computed for an
+aggregate. In case \code{agg = "row"}, the ROW is built substracting the selected
+countries from the world total}
 }
 \value{
 A double with the value of the selected variable for the country and year
@@ -35,6 +41,8 @@ is lower than 5 years, 5 years is used a window to compute the average.
 \examples{
 compute_macro_var("ITA", 2016, "gdp")
 compute_macro_var("USA", 2030, "gdp")
+compute_macro_var(c("USA", "ITA", "FRA"), 2030, "gdp", agg = "yes")
+compute_macro_var(c("USA", "ITA", "FRA"), 2030, "gdp", agg = "row")
 }
 \seealso{
 \code{\link{wb_series}} for more information on variables.

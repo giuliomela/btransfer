@@ -37,7 +37,7 @@ compute_sdr <- function(country, policy_yr = 2019, h = 10, aggregate = "no", eta
 
   iso3c <- year <- death_rate <- gdp_capita_growth <- gdp <- pop <- NULL
 
-# Identifying the iso3c codes of the countryies of interest. Names can be provided in any language
+# Identifying the iso3c codes of the countries of interest. Names can be provided in any language
 
   country_iso <- iso_codes(country)
 
@@ -69,81 +69,86 @@ compute_sdr <- function(country, policy_yr = 2019, h = 10, aggregate = "no", eta
 
   })
 
+  # adding country names
 
-  eta_l <- lapply(country_iso, function(x) compute_eta(x, policy_yr, h, eta_lit))
+  sdr_data$country <- from_iso_to_name(sdr_data$iso3c)
 
-  eta <- do.call("rbind", eta_l)
+  # computing SDR
 
-  sdr <- Reduce(merge, list(gdp_growth, death_rt, eta))
+  sdr_data$sdr <- sdr_data$death_rt / 1000 + sdr_data$eta * sdr_data$gdp_capita_growth
 
-  sdr <- within(sdr, {
-
-    iso3c  <- ifelse(country == "WLD", NA_character_, iso3c)
-    country <- ifelse(country == "WLD", "WLD",
-                     countrycode::countrycode(iso3c, origin = "iso3c",
-                                              destination = "country.name.en"))
-    sdr <- death_rt / 1000 + as.numeric(eta) * gdp_capita_growth
-
-
-  })
-
-  sdr <- sdr[, c("iso3c", "country", "gdp_capita_growth", "death_rt", "eta", "sdr")]
-
-  sdr <- dplyr::as_tibble(sdr)
+  sdr <- sdr_data[, c("iso3c", "country", "gdp_capita_growth", "death_rt", "eta", "sdr")]
 
   } else if (aggregate == "yes") { # aggregates analysis
 
-    # In case of aggregates, average growth rates must be computed from gdp and population data
+    disagg_values <- tidyr::expand_grid(iso3c = country_iso,
+                       year = seq(policy_yr - h, policy_yr, by = 1))
 
-    gdp_pop <- subset(btransfer::wb_series, iso3c %in% country_iso & year >= policy_yr - h &
-                        year <= policy_yr, select = c(iso3c, year, gdp, pop))
+    vars <- c("gdp", "pop", "death_rate")
 
-    gdp_pop_l <- split(gdp_pop, gdp_pop$year)
+ # computing aggregate gdp and pop
+    for (i in vars) {
 
-    gdp_pop_l <- lapply(gdp_pop_l, function(x){
-      data.frame(year = unique(x$year),
-                 gdp = sum(x$gdp, na.rm = TRUE),
-                 pop = sum(x$pop, na.rm = TRUE))
-    })
+      disagg_values[[i]] <-purrr::map2_dbl(disagg_values$iso3c, disagg_values$year,
+                                       function(x, y) compute_macro_var(x, y, i))
 
-    gdp_pop <- do.call("rbind", gdp_pop_l)
+    }
 
-    gdp_pop$gdp_capita <- gdp_pop$gdp / gdp_pop$pop
 
-    gdp_pop <- transform(gdp_pop,
-                            gdp_growth = c(NA, gdp_capita[-1] / gdp_capita[-nrow(gdp_pop)] - 1))
+    sdr_data <- dplyr::tibble(year = seq(policy_yr - h, policy_yr, by = 1))
 
-    gdp_growth <- gdp_pop[, c("year", "gdp_growth")]
+    # computing aggregate gdp and pop data
 
-    rownames(gdp_growth) <- NULL
+    for (i in c("gdp", "pop")) {
 
-    gdp_growth <- mean(gdp_growth$gdp_growth[-1])
+      sdr_data[[i]] <- tapply(disagg_values[[i]],
+                              disagg_values[["year"]], sum)
+
+    }
+
+    # computing gdp per capita and gdp growth rates
+
+    sdr_data$gdp_capita <- sdr_data$gdp / sdr_data$pop
+
+    # computing growth rates
+
+    sdr_data$gdp_growth <- compute_growth_rate(sdr_data$gdp_capita)
 
     # computing aggregate death rates
 
-    death_rt <- subset(btransfer::wb_series, iso3c %in% country_iso & year > policy_yr - h &
-                         year <= policy_yr, select = c(iso3c, year, death_rate, pop))
-
-    # computing year-by-year avg death rates of the aggregate
-
-    death_rt_l <- split(death_rt, death_rt$year)
-
-    death_rt_l <- lapply(death_rt_l, function(x){
-      data.frame(year = unique(x$year),
-                 death_rt = stats::weighted.mean(x$death_rate, x$pop))
+    agg_death_rates <- by(disagg_values, disagg_values$year, function(DF){
+      aggregate(death_rate ~ year, DF, function(y, w)
+        weighted.mean(y, w = DF[['pop']], na.rm = TRUE))
     })
 
-    death_rt <- do.call("rbind", death_rt_l)
 
-    rownames(death_rt) <- NULL
+    agg_death_rates <- do.call("rbind", agg_death_rates)
 
-    death_rt <- mean(death_rt$death_rt)
+    # adding death rates to the sdr_data tibble
+
+    sdr_data <- merge(sdr_data, agg_death_rates)
 
     # computing eta
 
-    eta_l <- lapply(country_iso, function (x) compute_eta(x, policy_yr, h, eta_lit))
+    eta_db <- dplyr::tibble(iso3c = country_iso)
 
-    eta_countries <- do.call("rbind", eta_l)
+    eta_db$eta <- sapply(eta_db$iso3c, function (x) compute_eta(x, policy_yr, h, eta_lit))
+
+    eta_db$pop <- sapply(eta_db$iso3c, function (x) compute_avg(x, start_yr = policy_yr - h,
+                                                               end_yr = policy_yr, var = "pop"))
+
+    sdr_data <- sdr_data[sdr_data$year != policy_yr - h, ]
+
+    sdr_data <- dplyr::tibble(iso3c = NA, country = aggregate_name,
+                              gdp_capita_growth = mean(sdr_data$gdp_growth, na.rm = T),
+                              death_rate = mean(sdr_data$death_rate, na.rm = T),
+                              eta = weighted.mean(eta_db$eta, eta_db$pop))
+
+    sdr_data$sdr <- sdr_data$death_rate / 1000 + sdr_data$eta * sdr_data$gdp_capita_growth
+
+
+    sdr_data
+
 
     # weighting eta according to population
 
@@ -167,61 +172,40 @@ compute_sdr <- function(country, policy_yr = 2019, h = 10, aggregate = "no", eta
 
   } else if (aggregate == "row"){ # computes the sdr of the rest of the world (with respect to selected countries)
 
-    gdp_pop <- subset(btransfer::wb_series, iso3c %in% c(country_iso, "WLD") & year >= policy_yr - h &
-             year <= policy_yr, select = c(iso3c, year, gdp, pop))
+    disagg_values <- tidyr::expand_grid(iso3c = c(country_iso, "WLD"),
+                                        year = seq(policy_yr - h, policy_yr, by = 1))
 
-    gdp_pop <- transform(gdp_pop, gdp = ifelse(iso3c != "WLD", - gdp, gdp),
-                      pop = ifelse(iso3c != "WLD", - pop, pop))
-
-    gdp_pop_l <- split(gdp_pop, gdp_pop$year)
-
-    gdp_pop_l <- lapply(gdp_pop_l, function (x){
-
-      data.frame(year = unique(x$year),
-      gdp = sum(x$gdp, na.rm = TRUE),
-      pop = sum(x$pop, na.rm = TRUE))
-
-    })
-
-    gdp_pop <- do.call("rbind", gdp_pop_l)
-
-    gdp_capita <- transform(gdp_pop, gdp_capita = gdp / pop)
-
-    gdp_capita <- transform(gdp_capita,
-                         gdp_growth = c(NA, gdp_capita[-1] / gdp_capita[-nrow(gdp_pop)] - 1))
-
-    gdp_growth <- gdp_capita[, c("year", "gdp_growth")]
-
-    rownames(gdp_growth) <- NULL
-
-    gdp_growth <- mean(gdp_growth$gdp_growth[-1])
-
-    # computing row  death rate
-
-    row_countries <- setdiff(btransfer::country_list, country_iso)
-
-    row_countries <- setdiff(btransfer::wb_series$iso3c, c(iso3c, "WLD"))
-
-    death_rt <- subset(btransfer::wb_series, iso3c %in% row_countries & year > policy_yr - h &
-                         year <= policy_yr,
-                       select = c(iso3c, year, death_rate, pop))
+    vars <- c("gdp", "pop", "death_rate")
 
 
-    death_rt_l <- split(death_rt, death_rt$year)
+    # computing aggregate gdp and pop
+    for (i in vars) {
 
-    death_rt_l <- lapply(death_rt_l, function(x) {
+      disagg_values[[i]] <-purrr::map2_dbl(disagg_values$iso3c, disagg_values$year,
+                                           function(x, y) compute_macro_var(x, y, i))
 
-      data <- stats::na.omit(x) # removes NA rows
+    }
 
-      stats::weighted.mean(data$death_rate, data$pop, na.rm = TRUE)
 
-    })
+    sdr_data <- dplyr::tibble(year = seq(policy_yr - h, policy_yr, by = 1))
 
-    death_rt <- mean(do.call("rbind", death_rt_l))
+    # computing aggregate gdp and pop data
 
-    # assigning eta the literature value
+    for (i in c("gdp", "pop")) {
 
-    eta <- eta_lit
+      sdr_data[[i]] <- tapply(disagg_values[[i]],
+                              disagg_values[["year"]], sum)
+
+    }
+
+    # computing gdp per capita and gdp growth rates
+
+    sdr_data$gdp_capita <- sdr_data$gdp / sdr_data$pop
+
+    # computing growth rates
+
+    sdr_data$gdp_growth <- compute_growth_rate(sdr_data$gdp_capita)
+
 
 
   }

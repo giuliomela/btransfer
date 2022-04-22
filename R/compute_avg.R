@@ -25,6 +25,8 @@ compute_avg <- function (iso, start_yr, end_yr, var, type = "levels") {
 
   if (!is.element(type, c("levels", "growth_rt"))) stop ("Please provide a valid type variable")
 
+  if (start_yr >= end_yr) stop ("'end_yr' cannot be earlier or the same as 'start_yr'")
+
   if (type == "levels") {
 
     data <- btransfer::wb_series
