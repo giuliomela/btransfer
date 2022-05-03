@@ -15,8 +15,10 @@ iso_codes <- function (country_name) {
   world_names <- c("Mondo", "World", "Monde", "Mundo", "Welt",
                    "Wereld")
 
-  eu_names <- c("Unione Europea", "European Union", "EU", "UE", "Union Européenne",
-                "Unión Europea", "União Europeia", "Europäische Union", "Europese Unie")
+  eu_names <- c("Unione Europea", "European Union", "EU", "UE", paste0("Union Europ",
+  "\U00E9", "enne"), paste0("Uni", "\U00F3", "n Europea"),
+  paste0("Uni", "\U00C3", "o Europeia"), paste0("Europ",
+  "\U00E4", "ische Union"), "Europese Unie")
 
   if (country_name %in% world_names) {
 

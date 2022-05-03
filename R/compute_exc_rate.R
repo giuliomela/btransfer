@@ -11,10 +11,9 @@
 #' @param ref_year A double. Year for which the exchange rate must be calculated
 #' @return A double. Echange rate for the currency pair and the year selected.
 #' @source \url{https://data.worldbank.org/}
-#'
-#' @examples
-#' compute_exc_rate("EMU", "USA", 2016)
 compute_exc_rate <- function (cur_from, cur_to, ref_year) {
+
+  iso3c <- year <- NULL
 
   exc_rates <- subset(btransfer::wb_series, iso3c %in% c(cur_from, cur_to) &
                         year == ref_year,

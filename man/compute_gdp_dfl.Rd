@@ -13,7 +13,7 @@ compute_gdp_dfl(country_iso = "EMU", ref_year)
 \item{country_iso}{A character string. The ISO code (3 digits) of the country of interest.
 Default is the Euro Area (\code{EMU}).}
 
-\item{year}{A double. The year for which the GDP deflator must be calculated.
+\item{ref_year}{A double. The year for which the GDP deflator must be calculated.
 calculated.}
 }
 \value{
@@ -24,8 +24,4 @@ selected.
 This function computes the GDP deflator for a country provided by the user.
 Data are from the World Bank database and cover most countries in the world.
 Data on the Euro zone are from Eurostat.
-}
-\examples{
-compute_gdp_dfl("ITA", 2019)
-compute_gdp_dfl(year = 2014)
 }

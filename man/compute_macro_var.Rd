@@ -30,7 +30,7 @@ of interest.
 }
 \description{
 This function extracts and returns macro-economic variables from the
-\code{\link{wb_series}} database, which are in turn retrieved from the
+\code{wb_series} database, which are in turn retrieved from the
 World Bank database. The user can specify the country and the year of interest.
 In case the selected year is in the future, the function estimates future
 values of the selected variable based on the average growth rates of the last
@@ -38,12 +38,6 @@ values of the selected variable based on the average growth rates of the last
 reference year and the latest year with available data. IN case such difference
 is lower than 5 years, 5 years is used a window to compute the average.
 }
-\examples{
-compute_macro_var("ITA", 2016, "gdp")
-compute_macro_var("USA", 2030, "gdp")
-compute_macro_var(c("USA", "ITA", "FRA"), 2030, "gdp", agg = "yes")
-compute_macro_var(c("USA", "ITA", "FRA"), 2030, "gdp", agg = "row")
-}
 \seealso{
-\code{\link{wb_series}} for more information on variables.
+For more information on variables see the \code{wb_series} documentation.
 }

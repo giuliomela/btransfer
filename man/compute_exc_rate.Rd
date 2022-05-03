@@ -26,6 +26,3 @@ This function computes nominal exchange rates between two custom currencies for
 a given year. Exchange rate data are from the World Bank database. Euro is
 denoted with the code \code{EMU}.
 }
-\examples{
-compute_exc_rate("EMU", "USA", 2016)
-}

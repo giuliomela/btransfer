@@ -20,9 +20,6 @@ This function computes the income elasticity of the willingness to pay for
 environmental/health goods (epsilon) based on GNI per capita and the latest
 version of the World Bank's income classification of countries.
 }
-\examples{
-compute_epsilon(30000)
-}
 \seealso{
 \code{\link{income_class}}
 }

@@ -9,15 +9,10 @@ License: MIT + file LICENSE
 URL: https://github.com/giuliomela/btransfer.git
 Imports: 
     countrycode,
-    devtools,
     dplyr,
-    OECD,
-    Rdpack,
+    eurostat,
     stats,
-    stringr,
-    tidyr,
-    utils,
-    wbstats
+    stringr
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.2
@@ -25,5 +20,8 @@ Depends:
     R (>= 2.10)
 Suggests: 
     rmarkdown,
-    knitr
+    knitr,
+    devtools,
+    testthat (>= 3.0.0)
 VignetteBuilder: knitr
+Config/testthat/edition: 3

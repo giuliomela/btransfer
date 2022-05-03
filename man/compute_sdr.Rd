@@ -5,16 +5,16 @@
 \title{Computing the social discount rate with Ramsey's rule.}
 \usage{
 compute_sdr(
-  country,
+  countries,
   policy_yr = 2019,
   h = 10,
   aggregate = "no",
   eta_lit = 1.35,
-  aggregate_name = "none"
+  aggregate_name = "aggregate"
 )
 }
 \arguments{
-\item{country}{A string vector of country names (in any language, see \code{\link[countrycode]{countryname}} package for details).
+\item{countries}{A string vector of country names (in any language, see \code{\link[countrycode]{countryname}} package for details).
 In case \code{aggregate = "yes"} or \code{aggregate = "row"}, the list of countries is
 used to compute the SDR for that group of countries or for the rest of the world respectively.
 The user can select also the world or the European Union by providing the name in either English,
@@ -32,7 +32,7 @@ SDR for the ROW (with respect to the selected countries) is provided. Default is
 that is those for which no tax data are available. This parameter is used also for the ROW estimate.}
 
 \item{aggregate_name}{A string. In case the SDR must be calculated for an aggregate, the user can provide
-the aggregate name to be displayed in the output tibble. Default is set to "none".}
+the aggregate name to be displayed in the output tibble. Default is set to "aggregate".}
 }
 \value{
 A tibble containing country names, Ramsey's equation parameters and
@@ -51,6 +51,6 @@ carried out by Drupp et al. For more information on the Ramsey's rule please ref
 \examples{
  compute_sdr(c("Italia", "Alemania", "France", "Polska"))
  compute_sdr("Italy", 2018, 15)
- compute_sdr(c("Italia", "Alemania", "France", "Polska", aggregate = "yes"))
- compute_sdr(c("Italia", "Alemania", "France", "Polska", aggregate = "row"))
+ compute_sdr(c("Italia", "Alemania", "France", "Polska"), aggregate = "yes")
+ compute_sdr(c("Italia", "Alemania", "France", "Polska"), aggregate = "row")
 }

@@ -1,7 +1,7 @@
 #' Returns macro-economic variables for selected countries and years
 #'
 #' This function extracts and returns macro-economic variables from the
-#' \code{\link{wb_series}} database, which are in turn retrieved from the
+#' \code{wb_series} database, which are in turn retrieved from the
 #' World Bank database. The user can specify the country and the year of interest.
 #' In case the selected year is in the future, the function estimates future
 #' values of the selected variable based on the average growth rates of the last
@@ -24,14 +24,10 @@
 #' countries from the world total
 #' @return A double with the value of the selected variable for the country and year
 #' of interest.
-#' @seealso \code{\link{wb_series}} for more information on variables.
-#'
-#' @examples
-#' compute_macro_var("ITA", 2016, "gdp")
-#' compute_macro_var("USA", 2030, "gdp")
-#' compute_macro_var(c("USA", "ITA", "FRA"), 2030, "gdp", agg = "yes")
-#' compute_macro_var(c("USA", "ITA", "FRA"), 2030, "gdp", agg = "row")
+#' @seealso For more information on variables see the \code{wb_series} documentation.
 compute_macro_var <- function (country_iso, ref_year, var = "gdp_capita", agg = "no") {
+
+  iso3c <- year <- NULL
 
   if (ref_year > 2050 | ref_year < 1961) stop("Please provide a valid year. Year
                                               must be between 1961 and 2050")

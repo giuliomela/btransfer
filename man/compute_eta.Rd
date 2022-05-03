@@ -28,6 +28,3 @@ following the equal-sacrifice income tax approach to be used to estimate a
 country's social discount rate using the Ramsey's rule.
 Eta is estimated from marginal and average tax rates from the OECD tax database.
 }
-\examples{
-compute_eta("ITA", 2019, 10)
-}

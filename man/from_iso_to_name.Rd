@@ -17,10 +17,6 @@ A string. The English name of the country of interest.
 \description{
 This function returns the English name of a country starting from its ISO code.
 }
-\examples{
-from_iso_to_name("ITA")
-from_iso_to_name("WLD")
-}
 \seealso{
 \code{\link[countrycode]{countrycode}}
 }

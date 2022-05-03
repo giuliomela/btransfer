@@ -2,7 +2,7 @@
 #'
 #' This function computes average values of some macro-economic variables
 #' for selected countries and time intervals. Underlying data can be either
-#' levels (\code{\link{{wb_series}}}) or growth rates (\code{\link{{wb_growth}}}).
+#' levels (\code{\link{wb_series}}) or growth rates (\code{\link{wb_growth}}).
 #'
 #' @param iso A string. A country's ISO code (3 digits). The function accepts
 #' \code{WLD} and \code{EUU} for the world and the European Union respectively.
@@ -17,11 +17,10 @@
 #' values. It can assume two values: \code{levels} or \code{growth_rt}.
 #' @return A double. The average growth rate of the selected variable for the
 #' country and time window of interest.
-#'
-#' @examples
-#' compute_avg("ITA", 2000, 2018, "gdp_capita")
-#' compute_avg("ITA", 2000, 2018, "gdp_capita", "growth_rt")
+
 compute_avg <- function (iso, start_yr, end_yr, var, type = "levels") {
+
+  year <- iso3c <- NULL
 
   if (!is.element(type, c("levels", "growth_rt"))) stop ("Please provide a valid type variable")
 

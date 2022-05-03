@@ -15,7 +15,3 @@ A vector of growth rates
 \description{
 This function computes growth rates along a vector of values.
 }
-\examples{
-x <- c(rep(NA_real_, 5), 200, 210, 215, 222, 230, 300)
-compute_growth_rate(x)
-}

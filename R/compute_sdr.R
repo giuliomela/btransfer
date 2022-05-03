@@ -10,7 +10,7 @@
 #' \href{https://www.oecd-ilibrary.org/sites/9789264085169-11-en/index.html?itemId=/content/component/9789264085169-11-en}{the OECD's guide on cost benefit analysis and the environment}
 #'
 #'
-#' @param country A string vector of country names (in any language, see \code{\link[countrycode]{countryname}} package for details).
+#' @param countries A string vector of country names (in any language, see \code{\link[countrycode]{countryname}} package for details).
 #' In case \code{aggregate = "yes"} or \code{aggregate = "row"}, the list of countries is
 #' used to compute the SDR for that group of countries or for the rest of the world respectively.
 #' The user can select also the world or the European Union by providing the name in either English,
@@ -23,7 +23,7 @@
 #' @param eta_lit A double. Value of the elasticity of marginal utility of consumption for non-OECD countries,
 #' that is those for which no tax data are available. This parameter is used also for the ROW estimate.
 #' @param aggregate_name A string. In case the SDR must be calculated for an aggregate, the user can provide
-#' the aggregate name to be displayed in the output tibble. Default is set to "none".
+#' the aggregate name to be displayed in the output tibble. Default is set to "aggregate".
 #' @return A tibble containing country names, Ramsey's equation parameters and
 #'  the social discount rate calculated for the selected countries or aggregates.
 #' @export
@@ -31,16 +31,16 @@
 #' @examples
 #'  compute_sdr(c("Italia", "Alemania", "France", "Polska"))
 #'  compute_sdr("Italy", 2018, 15)
-#'  compute_sdr(c("Italia", "Alemania", "France", "Polska", aggregate = "yes"))
-#'  compute_sdr(c("Italia", "Alemania", "France", "Polska", aggregate = "row"))
-compute_sdr <- function(country, policy_yr = 2019, h = 10, aggregate = "no", eta_lit = 1.35,
-                        aggregate_name = "none"){
+#'  compute_sdr(c("Italia", "Alemania", "France", "Polska"), aggregate = "yes")
+#'  compute_sdr(c("Italia", "Alemania", "France", "Polska"), aggregate = "row")
+compute_sdr <- function(countries, policy_yr = 2019, h = 10, aggregate = "no", eta_lit = 1.35,
+                        aggregate_name = "aggregate"){
 
   iso3c <- year <- death_rate <- gdp_capita_growth <- gdp <- pop <- NULL
 
 # Identifying the iso3c codes of the countries of interest. Names can be provided in any language
 
-  country_iso <- sapply(country, iso_codes)
+  country_iso <- sapply(countries, iso_codes)
 
 # identifying gdp per capita growth rates
 
@@ -56,7 +56,7 @@ compute_sdr <- function(country, policy_yr = 2019, h = 10, aggregate = "no", eta
 
     # adding death rates
 
-    sdr_data$death_rt <- sapply(sdr_data$iso3c, function (x) {
+    sdr_data$death_rate <- sapply(sdr_data$iso3c, function (x) {
 
       compute_avg(x, start_yr = policy_yr - h, end_yr = policy_yr, var = "death_rate")
 
@@ -76,9 +76,9 @@ compute_sdr <- function(country, policy_yr = 2019, h = 10, aggregate = "no", eta
 
   # computing SDR
 
-  sdr_data$sdr <- sdr_data$death_rt / 1000 + sdr_data$eta * sdr_data$gdp_capita_growth
+  sdr_data$sdr <- sdr_data$death_rate / 1000 + sdr_data$eta * sdr_data$gdp_capita_growth
 
-  sdr <- sdr_data[, c("iso3c", "country", "gdp_capita_growth", "death_rt", "eta", "sdr")]
+  sdr <- sdr_data[, c("iso3c", "country", "gdp_capita_growth", "death_rate", "eta", "sdr")]
 
   sdr
 
@@ -114,7 +114,7 @@ compute_sdr <- function(country, policy_yr = 2019, h = 10, aggregate = "no", eta
     eta_db$pop <- sapply(eta_db$iso3c, function (x) compute_avg(x, start_yr = policy_yr - h,
                                                                end_yr = policy_yr, var = "pop"))
 
-    eta <-  weighted.mean(eta_db$eta, eta_db$pop)
+    eta <-  stats::weighted.mean(eta_db$eta, eta_db$pop)
 
     } else {
 
@@ -124,7 +124,7 @@ compute_sdr <- function(country, policy_yr = 2019, h = 10, aggregate = "no", eta
 
     # computing average values for the aggregate
 
-    sdr_data <- dplyr::tibble(iso3c = NA, country = aggregate_name,
+    sdr_data <- dplyr::tibble(iso3c = NA_character_, country = aggregate_name,
                               gdp_capita_growth = mean(sdr_data$gdp_capita_growth, na.rm = T),
                               death_rate = mean(sdr_data$death_rate, na.rm = T),
                               eta = eta)

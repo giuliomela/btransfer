@@ -10,8 +10,6 @@
 #' \url{https://blogs.worldbank.org/opendata/new-world-bank-country-classifications-income-level-2021-2022}
 #' @return A double. The income elasticity of the willingness to pay
 #' @seealso \code{\link{income_class}}
-#'
-#' @examples compute_epsilon(30000)
 compute_epsilon <- function (gni_capita) {
 
   epsilon_db <- btransfer::income_class

@@ -26,12 +26,14 @@
 #' @param study_site A single string. The name of the country in which the original
 #' study that identified the values to be transferred was carried out. The name can be
 #' provided in any language (first letter always capitalized). It is possible to choose
-#' also two aggregates: the European Union (\code{EUU}) and the world as a whole (\code{WLD}).
-#' The default value is \code{EUU}.
+#' also two aggregates: the European Union and the world as a whole. In this case,
+#' names can be provided in English, French, Italian, Spanish, German, Dutch and Portuguese.
+#' The default value is \code{"European Union"}.
 #' @param policy_site A string vector. Names of the countries to which the value must be
-#' transferred. It can be either a single string or a vector. Names can be provided in
-#' any language. If the policy site is the European Union or the world \code{EUU} and
-#' \code{WLD} must be used respectively.
+#' transferred. It can be either a single string or a vector. It is possible to choose
+#' also two aggregates: the European Union and the world as a whole. In this case,
+#' names can be provided in English, French, Spanish, Italian, German, Dutch and Portuguese.
+#' The default value is \code{"European Union"}.
 #' @param study_yr Numeric. The year in which the original values was estimated. Default
 #' is 2016, year about which the estimates provided by the European Commission's Handbook
 #' on the external cost of the transport sector refer to.
@@ -75,16 +77,22 @@ bt_transfer <- function (study_site = "European Union", policy_site, study_yr = 
                          aggregate = "no", study_currency = "EUR",  policy_currency = "EUR",
                          aggregate_name = "none") {
 
-  iso3c <- eu_code <- gdp_capita <- income_class <- gni_agg <- gni_row <- NULL
+  iso3c <- eu_code <- gdp_capita <- income_class <- gni_agg <- gni_row <- eu_code <- NULL
+
+  # identifying iso3c codes of provided study and policy sites
+
+  iso_study <- iso_codes(study_site)
+
+  iso_policy <- sapply(policy_site, iso_codes)
 
   # verifying the call is correct (error messages provided if not)
 
   if (length(policy_site) == 1) {
 
-  if(policy_site == "WLD" & aggregate %in% c("yes", "row"))
+  if(iso_study == "WLD" & aggregate %in% c("yes", "row"))
     stop("If world is selected as policy site, aggregate must be set to no")
 
-  if(policy_site == "EUU" & aggregate == "yes")
+  if(iso_policy == "EUU" & aggregate == "yes")
     stop("If the EU is selected as policy site, aggregate must be set to either no or row")
 
   }
@@ -158,10 +166,14 @@ bt_transfer <- function (study_site = "European Union", policy_site, study_yr = 
 
     } else {
 
+      ea_countries <- eurostat::ea_countries$name
+
+      ea_iso <- sapply(ea_countries, iso_codes)
+
   cur_policy <- dplyr::case_when(
     policy_currency == "EUR" ~ "EMU",
     policy_currency == "USD" ~ "USA",
-    policy_currency == "LCU" ~ ifelse(iso_policy == "EUU", "EMU", iso_policy)
+    policy_currency == "LCU" ~ ifelse(iso_policy %in% c(ea_iso, "EUU"), "EMU", iso_policy)
   )
 
     }

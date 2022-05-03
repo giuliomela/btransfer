@@ -15,9 +15,6 @@
 #' @return A double. The estimate of the elasticity of marginal utility of consumption
 #' for the selected country, over an h-long period starting backwards from \code{policy_yr}
 #' @export
-#'
-#' @examples
-#' compute_eta("ITA", 2019, 10)
 compute_eta <- function(iso_code, policy_yr, h, eta_lit) {
 
   iso3c <- year <- NULL

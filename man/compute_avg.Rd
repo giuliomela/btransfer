@@ -30,9 +30,5 @@ country and time window of interest.
 \description{
 This function computes average values of some macro-economic variables
 for selected countries and time intervals. Underlying data can be either
-levels (\code{\link{{wb_series}}}) or growth rates (\code{\link{{wb_growth}}}).
-}
-\examples{
-compute_avg("ITA", 2000, 2018, "gdp_capita")
-compute_avg("ITA", 2000, 2018, "gdp_capita", "growth_rt")
+levels (\code{\link{wb_series}}) or growth rates (\code{\link{wb_growth}}).
 }
