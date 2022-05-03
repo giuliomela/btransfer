@@ -89,7 +89,7 @@ The first step of the analysis is to identify from which country the primary
 estimate comes from (study site) and the country(ies) to which such estimate
 must be transferred.
 
-```{r seelcting-countries}
+```{r selecting-countries}
 
 study_site <- "United Kingdom"
 
