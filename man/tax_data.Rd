@@ -5,7 +5,7 @@
 \alias{tax_data}
 \title{Average and marginal income tax rates of OECD countries}
 \format{
-An object of class \code{tbl_df} (inherits from \code{tbl}, \code{data.frame}) with 1638 rows and 4 columns.
+An object of class \code{tbl_df} (inherits from \code{tbl}, \code{data.frame}) with 1760 rows and 4 columns.
 }
 \source{
 \url{https://www.oecd.org/ctp/tax-policy/tax-database/}

@@ -1,6 +1,6 @@
 ## code to prepare `DATASET` dataset goes here
 
-latest_yr <- 2020
+latest_yr <- 2021
 
 eta_lit <- 1.35 # value of eta (an element of Ramsey's rule) from the literature
 
@@ -58,7 +58,7 @@ selected_series <- wb_series[, c("year", "iso3c", "gdp", "gdp_capita", "gni", "g
 
 wb_growth_g <- dplyr::group_by(selected_series, iso3c)
 
-wb_growth <- dplyr::mutate(wb_growth_g, dplyr::across(gdp:pop, compute_growth_rate,
+wb_growth <- dplyr::mutate(wb_growth_g, dplyr::across(gdp:pop, btransfer:::compute_growth_rate,
                                                       .names = "{.col}_growth"))
 
 wb_growth <- dplyr::ungroup(wb_growth)
