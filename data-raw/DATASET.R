@@ -95,8 +95,12 @@ tax_data <- within(tax_data,{
 
 tax_data <- subset(tax_data, select = c(iso3c, year, indicator, value))
 
+# Loading composition of maritime aggregates included in the Handbook on the external cost of transport
+
+agg_composition <- readxl::read_excel(here::here("data-raw/agg_composition.xlsx"))
+
 
 usethis::use_data(income_class, wb_series, gdp_defl_eurostat, wb_growth, tax_data,
-                  country_list,
+                  country_list, agg_composition,
                   overwrite = TRUE)
 

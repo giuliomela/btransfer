@@ -24,72 +24,93 @@
 #' available data is 2020, the horizon is set to 10 years).
 #'
 #' @param study_site A single string. The name of the country in which the original
-#' study that identified the values to be transferred was carried out. The name can be
-#' provided in any language (first letter always capitalized). It is possible to choose
-#' also two aggregates: the European Union and the world as a whole. In this case,
-#' names can be provided in English, French, Italian, Spanish, German, Dutch and Portuguese.
-#' The default value is \code{"European Union"}.
+#'     study that identified the values to be transferred was carried out. The name can be
+#'     provided in any language (first letter always capitalized). It is possible to choose
+#'     also some aggregates: the European Union, the world as a whole and a few maritime aggregates present in
+#'     the 2019 version of the EU's Handbook on the External Costs of Transport:
+#'     - Mediterranean sea (`med`)
+#'     - Black sea (`blk`)
+#'     - North sea (`nor`)
+#'     - Atlantic ocean (`atl`), European countries only
+#'     - Baltic sea (`bal`)
+#'     . Single country names can
+#'     be provided in English, French, Italian, Spanish, German, Dutch and Portuguese.
+#'     The default value is `European Union`.
 #' @param policy_site A string vector. Names of the countries to which the value must be
-#' transferred. It can be either a single string or a vector. It is possible to choose
-#' also two aggregates: the European Union and the world as a whole. In this case,
-#' names can be provided in English, French, Spanish, Italian, German, Dutch and Portuguese.
-#' The default value is \code{"European Union"}.
+#'     transferred. It can be either a single string or a vector. It is possible to choose
+#'     also two aggregates: the European Union and the world as a whole. In this case,
+#'     names can be provided in English, French, Spanish, Italian, German, Dutch and Portuguese.
+#'     The default value is `European Union`.
 #' @param study_yr Numeric. The year in which the original values was estimated. Default
-#' is 2016, year about which the estimates provided by the European Commission's Handbook
-#' on the external cost of the transport sector refer to.
-#' @param policy_yr Numeric. The ywar to which values must be transferred. Default is 2019. It
-#' is possible to define also future years up to 2050.
-#' @param aggregate A single string. It can assume three different values. If \code{no} transfer
-#' factors are provided for each country selected via \code{policy_site}. If \code{yes} a transfer
-#' factor is calculated for the aggregate made up by the countries selected via \code{policy_site}.
-#' If \code{row} a transfer factor is calculated for the aggregate "rest of the world" (world
-#' minus countries selected via \code{policy_site}).
-#' @param study_currency A single string. It can assume three values: \code{EUR} (the default),
-#' \code{USD} or \code{LCU}. It refers to the currency in which the original values is expressed.
-#' In case \code{LCU} is chosen, the GDP deflator and the currency considered are those of the study site.
-#' In case \code{EUR} or \code{USD} are provided the Euro area and the US GDP deflators are used
-#' respectively.
-#' @param policy_currency A single string. It can assume three values: \code{EUR} (the default),
-#' \code{USD} or \code{LCU}. It refers to the currency in which the final value must be expressed.
-#' The option \code{LCU} can be chosen only if just one policy site in provided through
-#' the paramter \code{policy_site}.
-#' @param aggregate_name A single string. In case the value transfer must be perfomed
-#' for an aggregate of countries, a name can be provided to be displayed in the
-#' output.
+#'     is 2016, year about which the estimates provided by the European Commission's Handbook
+#'     on the external cost of the transport sector refer to.
+#' @param policy_yr Numeric. The year to which values must be transferred. Default is 2019. It
+#'     is possible to define also future years up to 2050.
+#' @param aggregate_policy A single string. It can assume three different values. If `no` transfer
+#'     factors are provided for each country selected via `policy_site`. If `yes` a transfer
+#'     factor is calculated for the aggregate made up by the countries selected via `policy_site`.
+#'     If `row` a transfer factor is calculated for the aggregate "rest of the world" (world
+#'     minus countries selected via `policy_site`).
+#' @param study_currency A single string. It can assume three values: `EUR` (the default),
+#'     `USD` or `LCU`. It refers to the currency in which the original values is expressed.
+#'     In case `LCU` is chosen, the GDP deflator and the currency considered are those of the study site.
+#'     In case `EUR` or `USD` are provided the Euro area and the US GDP deflators are used
+#'     respectively.
+#' @param policy_currency A single string. It can assume three values: `EUR` (the default),
+#'     `USD` or `LCU`. It refers to the currency in which the final value must be expressed.
+#'     The option `LCU` can be chosen only if just one policy site in provided through
+#'     the parameter `policy_site`.
+#' @param aggregate_policy_name A single string. In case the value transfer must be performed
+#'     to an aggregate of countries, a name can be provided to be displayed in the
+#'     output.
 #' @return A tibble containing all parameters used and the transfer factor (bt_fct), which
-#' is the scalar which the original value must be multiplied by to perform the transfer. Such
-#' factor is already adjusted for inflation.
+#'     is the scalar which the original value must be multiplied by to perform the transfer. Such
+#'     factor is already adjusted for inflation.
 #' @export
 #'
 #' @examples
 #' bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"))
 #' bt_transfer(study_site = "United States", policy_site = "Italia", policy_currency = "USD")
 #' bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"),
-#' aggregate = "yes")
+#' aggregate_policy = "yes")
 #' bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"),
-#' aggregate = "row")
+#' aggregate_policy = "row")
 #' bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"),
-#' policy_yr = 2030, aggregate = "row")
+#' policy_yr = 2030, aggregate_policy = "row")
 #' bt_transfer(policy_site = c("Italia", "Allemagne"), study_currency = "USD",
 #' policy_currency = "EUR")
 #' bt_transfer(policy_site = "Mexico", study_currency = "USD", policy_currency = "LCU")
 bt_transfer <- function (study_site = "European Union", policy_site, study_yr = 2016, policy_yr = 2019,
-                         aggregate = "no", study_currency = "EUR",  policy_currency = "EUR",
-                         aggregate_name = "none") {
+                         aggregate_policy = "no", study_currency = "EUR",
+                         policy_currency = "EUR",
+                         aggregate_policy_name = "none") {
 
   iso3c <- eu_code <- gdp_capita <- income_class <- gni_agg <- gni_row <- eu_code <- NULL
 
   # identifying iso3c codes of provided study and policy sites
 
-  iso_study <- iso_codes(study_site)
+  study_aggregates <- c("med", "blk", "nor", "atl", "bal")
+
+  if (!aggregate_study %in% study_aggregates) {
+
+    iso_study <- iso_codes(study_site)
+
+  } else {
+
+    iso_study <- study_site
+
+  }
 
   iso_policy <- sapply(policy_site, iso_codes)
 
   # verifying the call is correct (error messages provided if not)
 
+  if (!is.element(iso_study, c(study_aggregates, countrycode::codelist$iso3c)))
+    stop("Please provide a valid ISO or aggregate name for the study site")
+
   if (length(policy_site) == 1) {
 
-  if(iso_study == "WLD" & aggregate %in% c("yes", "row"))
+  if(iso_policy == "WLD" & aggregate %in% c("yes", "row"))
     stop("If world is selected as policy site, aggregate must be set to no")
 
   if(iso_policy == "EUU" & aggregate == "yes")
@@ -118,15 +139,19 @@ bt_transfer <- function (study_site = "European Union", policy_site, study_yr = 
   ref_yr <- ifelse(policy_yr > latest_av_yr,
                    latest_av_yr, policy_yr)
 
-  # identifying iso3c codes of provided study and policy sites
-
-  iso_study <- iso_codes(study_site)
-
-  iso_policy <- sapply(policy_site, iso_codes)
-
   # Defining gdp per capita data of the study site
 
-  study_site_gdp <- compute_macro_var(iso_study, study_yr)
+  if (iso_study %in% study_aggregates) {
+
+    agg_countries <- agg_composition[agg_composition$code == iso_study, ]$iso3c
+
+    study_site_gdp <- compute_macro_var(agg_countries, study_yr, agg = "yes") # computing aggregate value
+
+  } else {
+
+    study_site_gdp <- compute_macro_var(iso_study, study_yr)
+
+  }
 
   # Defining GDP deflator to be used
 
@@ -217,20 +242,22 @@ bt_transfer <- function (study_site = "European Union", policy_site, study_yr = 
 
   # including country names
 
+    bt_fct$study_country <- study_iso
+
   if (aggregate == "no") {
 
-    bt_fct$country <- sapply(bt_fct$iso3c, from_iso_to_name)
+    bt_fct$policy_country <- sapply(bt_fct$iso3c, from_iso_to_name)
 
   } else if ( aggregate == "yes") {
 
     bt_fct$iso3c <- NA_character_
-    bt_fct$country <- ifelse(aggregate_name == "none", "Aggregate",
-                             aggregate_name)
+    bt_fct$policy_country <- ifelse(aggregate_policy_name == "none", "Aggregate",
+                             aggregate_policy_name)
 
   } else if (aggregate == "row") {
 
     bt_fct$iso3c <- NA_character_
-    bt_fct$country <- "ROW"
+    bt_fct$policy_country <- "ROW"
 
   }
 

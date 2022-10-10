@@ -9,58 +9,65 @@ bt_transfer(
   policy_site,
   study_yr = 2016,
   policy_yr = 2019,
-  aggregate = "no",
+  aggregate_policy = "no",
   study_currency = "EUR",
   policy_currency = "EUR",
-  aggregate_name = "none"
+  aggregate_policy_name = "none"
 )
 }
 \arguments{
 \item{study_site}{A single string. The name of the country in which the original
 study that identified the values to be transferred was carried out. The name can be
 provided in any language (first letter always capitalized). It is possible to choose
-also two aggregates: the European Union and the world as a whole. In this case,
-names can be provided in English, French, Italian, Spanish, German, Dutch and Portuguese.
-The default value is \code{"European Union"}.}
+also some aggregates: the European Union, the world as a whole and a few maritime aggregates present in
+the 2019 version of the EU's Handbook on the External Costs of Transport:
+- Mediterranean sea (`med`)
+- Black sea (`blk`)
+- North sea (`nor`)
+- Atlantic ocean (`atl`), European countries only
+- Baltic sea (`bal`)
+. Single country names can
+be provided in English, French, Italian, Spanish, German, Dutch and Portuguese.
+The default value is `European Union`.}
 
 \item{policy_site}{A string vector. Names of the countries to which the value must be
 transferred. It can be either a single string or a vector. It is possible to choose
 also two aggregates: the European Union and the world as a whole. In this case,
 names can be provided in English, French, Spanish, Italian, German, Dutch and Portuguese.
-The default value is \code{"European Union"}.}
+The default value is `European Union`.}
 
 \item{study_yr}{Numeric. The year in which the original values was estimated. Default
 is 2016, year about which the estimates provided by the European Commission's Handbook
 on the external cost of the transport sector refer to.}
 
-\item{policy_yr}{Numeric. The ywar to which values must be transferred. Default is 2019. It
+\item{policy_yr}{Numeric. The year to which values must be transferred. Default is 2019. It
 is possible to define also future years up to 2050.}
 
-\item{aggregate}{A single string. It can assume three different values. If \code{no} transfer
-factors are provided for each country selected via \code{policy_site}. If \code{yes} a transfer
-factor is calculated for the aggregate made up by the countries selected via \code{policy_site}.
-If \code{row} a transfer factor is calculated for the aggregate "rest of the world" (world
-minus countries selected via \code{policy_site}).}
+\item{aggregate_policy}{A single string. It can assume three different values. If `no` transfer
+factors are provided for each country selected via `policy_site`. If `yes` a transfer
+factor is calculated for the aggregate made up by the countries selected via `policy_site`.
+If `row` a transfer factor is calculated for the aggregate "rest of the world" (world
+minus countries selected via `policy_site`).}
 
-\item{study_currency}{A single string. It can assume three values: \code{EUR} (the default),
-\code{USD} or \code{LCU}. It refers to the currency in which the original values is expressed.
-In case \code{LCU} is chosen, the GDP deflator and the currency considered are those of the study site.
-In case \code{EUR} or \code{USD} are provided the Euro area and the US GDP deflators are used
+\item{study_currency}{A single string. It can assume three values: `EUR` (the default),
+`USD` or `LCU`. It refers to the currency in which the original values is expressed.
+In case `LCU` is chosen, the GDP deflator and the currency considered are those of the study site.
+In case `EUR` or `USD` are provided the Euro area and the US GDP deflators are used
 respectively.}
 
-\item{policy_currency}{A single string. It can assume three values: \code{EUR} (the default),
-\code{USD} or \code{LCU}. It refers to the currency in which the final value must be expressed.
-The option \code{LCU} can be chosen only if just one policy site in provided through
-the paramter \code{policy_site}.}
+\item{policy_currency}{A single string. It can assume three values: `EUR` (the default),
+`USD` or `LCU`. It refers to the currency in which the final value must be expressed.
+The option `LCU` can be chosen only if just one policy site in provided through
+the parameter `policy_site`.}
 
-\item{aggregate_name}{A single string. In case the value transfer must be perfomed
-for an aggregate of countries, a name can be provided to be displayed in the
+\item{aggregate_policy_name}{A single string. In case the value transfer must be performed
+to an aggregate of countries, a name can be provided to be displayed in the
 output.}
 }
 \value{
 A tibble containing all parameters used and the transfer factor (bt_fct), which
-is the scalar which the original value must be multiplied by to perform the transfer. Such
-factor is already adjusted for inflation.
+    is the scalar which the original value must be multiplied by to perform the transfer. Such
+    factor is already adjusted for inflation.
 }
 \description{
 \code{bt_transfer} returns a data frame with all parameters used to calculate
@@ -91,11 +98,11 @@ available data is 2020, the horizon is set to 10 years).
 bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"))
 bt_transfer(study_site = "United States", policy_site = "Italia", policy_currency = "USD")
 bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"),
-aggregate = "yes")
+aggregate_policy = "yes")
 bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"),
-aggregate = "row")
+aggregate_policy = "row")
 bt_transfer(policy_site = c("Italia", "Allemagne", "France", "España", "Polska"),
-policy_yr = 2030, aggregate = "row")
+policy_yr = 2030, aggregate_policy = "row")
 bt_transfer(policy_site = c("Italia", "Allemagne"), study_currency = "USD",
 policy_currency = "EUR")
 bt_transfer(policy_site = "Mexico", study_currency = "USD", policy_currency = "LCU")

@@ -35,7 +35,7 @@ World Bank database. The user can specify the country and the year of interest.
 In case the selected year is in the future, the function estimates future
 values of the selected variable based on the average growth rates of the last
 \code{n} years. Where \code{n} is the number of years between the selected
-reference year and the latest year with available data. IN case such difference
+reference year and the latest year with available data. In case such difference
 is lower than 5 years, 5 years is used a window to compute the average.
 }
 \seealso{

@@ -6,7 +6,7 @@
 #' In case the selected year is in the future, the function estimates future
 #' values of the selected variable based on the average growth rates of the last
 #' \code{n} years. Where \code{n} is the number of years between the selected
-#' reference year and the latest year with available data. IN case such difference
+#' reference year and the latest year with available data. In case such difference
 #' is lower than 5 years, 5 years is used a window to compute the average.
 #'
 #' @param country_iso A string. The ISO code (3 digits) of the country of interest.
@@ -53,7 +53,15 @@ if (ref_year <= last_yr) {
                       "deaths",
                       stringr::str_remove(var, "_capita"))
 
-    alt_country_iso <- c("WLD", country_iso)
+    if (agg == "row") {
+
+      alt_country_iso <- c("WLD", country_iso)
+
+    } else {
+
+      alt_country_iso <- country_iso
+
+    }
 
     alt_db <- subset(btransfer::wb_series,
                      iso3c %in% alt_country_iso & year == ref_year)[, c("iso3c", alt_var, "pop")]
