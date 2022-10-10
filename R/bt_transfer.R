@@ -89,9 +89,9 @@ bt_transfer <- function (study_site = "European Union", policy_site, study_yr = 
 
   # identifying iso3c codes of provided study and policy sites
 
-  study_aggregates <- c("med", "blk", "nor", "atl", "bal")
+  hb_aggregates <- c("med", "blk", "nor", "atl", "bal")
 
-  if (!aggregate_study %in% study_aggregates) {
+  if (!study_site %in% hb_aggregates) {
 
     iso_study <- iso_codes(study_site)
 
@@ -99,21 +99,33 @@ bt_transfer <- function (study_site = "European Union", policy_site, study_yr = 
 
     iso_study <- study_site
 
+    agg_countries_study <- agg_composition[agg_composition$code == iso_study, ]$iso3c
+
   }
 
-  iso_policy <- sapply(policy_site, iso_codes)
+  # defining the ISO code of the polict site
+
+  if (policy_site %in% hb_aggregates) {
+
+  iso_policy <- agg_composition[agg_composition$code == policy_site, ]$iso3c
+
+  } else {
+
+    iso_policy <- sapply(policy_site, iso_codes)
+
+  }
 
   # verifying the call is correct (error messages provided if not)
 
-  if (!is.element(iso_study, c(study_aggregates, countrycode::codelist$iso3c)))
+  if (!is.element(iso_study, c(hb_aggregates, countrycode::codelist$iso3c)))
     stop("Please provide a valid ISO or aggregate name for the study site")
 
-  if (length(policy_site) == 1) {
+  if (length(iso_policy) == 1) {
 
-  if(iso_policy == "WLD" & aggregate %in% c("yes", "row"))
+  if(iso_policy == "WLD" & aggregate_policy %in% c("yes", "row"))
     stop("If world is selected as policy site, aggregate must be set to no")
 
-  if(iso_policy == "EUU" & aggregate == "yes")
+  if(iso_policy == "EUU" & aggregate_policy == "yes")
     stop("If the EU is selected as policy site, aggregate must be set to either no or row")
 
   }
@@ -125,9 +137,13 @@ bt_transfer <- function (study_site = "European Union", policy_site, study_yr = 
   if (length(policy_site) > 1 & policy_currency == "LCU") stop("The option policy currency can be set to LCU only if just one policy site is selected.
                                                                Please retry indicating just one policy site")
 
-  if (aggregate %in% c("yes", "row") & policy_currency == "LCU") stop("For aggregates, the option policy currency can be set to either EUR or USD only")
+  if (aggregate_policy %in% c("yes", "row") & policy_currency == "LCU") stop("For aggregates, the option policy currency can be set to either EUR or USD only")
 
   if(policy_yr > 2050) stop("Value transfer can be performed up to 2050 at most")
+
+  if(policy_site %in% hb_aggregates & aggregate_policy == "no")
+    stop("If the policy site is one of the HB maritime aggregates, the 'aggregate_policy' option must be set to 'yes'")
+
 
   # defining whether the value transfer is to be performed for a year in the future or not
 
@@ -141,11 +157,9 @@ bt_transfer <- function (study_site = "European Union", policy_site, study_yr = 
 
   # Defining gdp per capita data of the study site
 
-  if (iso_study %in% study_aggregates) {
+  if (iso_study %in% hb_aggregates) {
 
-    agg_countries <- agg_composition[agg_composition$code == iso_study, ]$iso3c
-
-    study_site_gdp <- compute_macro_var(agg_countries, study_yr, agg = "yes") # computing aggregate value
+    study_site_gdp <- compute_macro_var(agg_countries_study, study_yr, agg = "yes") # computing aggregate value
 
   } else {
 
@@ -206,7 +220,7 @@ bt_transfer <- function (study_site = "European Union", policy_site, study_yr = 
     # computing the exchange rate to be incorporated in the value transfer factor
     exc_rate_fct <- compute_exc_rate(cur_study, cur_policy, ref_yr)
 
-    if (aggregate == "no") {
+    if (aggregate_policy == "no") {
 
       bt_fct <- dplyr::tibble(iso3c = iso_policy,
                               year = policy_yr)
@@ -227,7 +241,7 @@ bt_transfer <- function (study_site = "European Union", policy_site, study_yr = 
     # adding gdp ang gni per capita
 
     for (i in c("gdp_capita", "gni_capita")) {
-      bt_fct[[i]] <- compute_macro_var(iso_policy, ref_year = policy_yr, var = i, agg = aggregate)
+      bt_fct[[i]] <- compute_macro_var(iso_policy, ref_year = policy_yr, var = i, agg = aggregate_policy)
     }
 
   }
@@ -242,19 +256,22 @@ bt_transfer <- function (study_site = "European Union", policy_site, study_yr = 
 
   # including country names
 
-    bt_fct$study_country <- study_iso
+    bt_fct$study_country <- study_site
 
-  if (aggregate == "no") {
+  if (aggregate_policy == "no") {
 
     bt_fct$policy_country <- sapply(bt_fct$iso3c, from_iso_to_name)
 
-  } else if ( aggregate == "yes") {
+  } else if ( aggregate_policy == "yes") {
 
     bt_fct$iso3c <- NA_character_
-    bt_fct$policy_country <- ifelse(aggregate_policy_name == "none", "Aggregate",
-                             aggregate_policy_name)
+    bt_fct$policy_country <- dplyr::case_when(
+      aggregate_policy_name == "none" & !is.element(policy_site, hb_aggregates) ~ "Aggregate",
+      aggregate_policy_name == "none" & is.element(policy_site, hb_aggregates) ~ policy_site,
+      TRUE ~ aggregate_policy_name
+    )
 
-  } else if (aggregate == "row") {
+  } else if (aggregate_policy == "row") {
 
     bt_fct$iso3c <- NA_character_
     bt_fct$policy_country <- "ROW"
@@ -267,7 +284,8 @@ bt_transfer <- function (study_site = "European Union", policy_site, study_yr = 
 
   # selecting and reordering columns
 
-    bt_fct <- bt_fct[, c("iso3c", "country", "year", "gdp_capita", "epsilon", "bt_fct")]
+    bt_fct <- bt_fct[, c("iso3c", "study_country",
+                         "policy_country", "year", "gdp_capita", "epsilon", "bt_fct")]
 
     dplyr::as_tibble(bt_fct)
 }
