@@ -108,7 +108,16 @@ if (ref_year <= last_yr) {
 
     alt_var <- stringr::str_remove(var, "_capita")
 
-    alt_country_iso <- c("WLD", country_iso)
+
+    if (agg == "row") {
+
+      alt_country_iso <- c("WLD", country_iso)
+
+    } else {
+
+      alt_country_iso <- country_iso
+
+    }
 
     all_values <- subset(btransfer::wb_series,
                          iso3c %in% alt_country_iso &
