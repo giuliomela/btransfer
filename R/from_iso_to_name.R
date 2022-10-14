@@ -13,6 +13,8 @@ from_iso_to_name <- function (iso) {
 
   all_isos <- subset(countrycode::codelist, !is.na(iso3c))$iso3c
 
+  agg_names <- c("med", "nor", "bal", "blk", "atl") # HB aggregate names
+
   # adding wolrd and EU isos
 
   all_isos <- c("WLD", "EUU", all_isos)
@@ -26,6 +28,10 @@ from_iso_to_name <- function (iso) {
   } else if (iso == "EUU") {
 
    "European Union"
+
+  } else if (iso %in% agg_names) {
+
+    iso
 
   } else {
 

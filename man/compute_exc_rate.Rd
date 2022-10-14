@@ -7,7 +7,7 @@
 \url{https://data.worldbank.org/}
 }
 \usage{
-compute_exc_rate(cur_from, cur_to, ref_year)
+compute_exc_rate(cur_from, cur_to, ref_yr)
 }
 \arguments{
 \item{cur_from}{A string. Country code (ISO, 3 digits) to which the origin
@@ -16,7 +16,7 @@ currency belongs.}
 \item{cur_to}{A string. Country code (ISO, 3 digits) to which the destination
 currency belongs.}
 
-\item{ref_year}{A double. Year for which the exchange rate must be calculated}
+\item{ref_yr}{A double. Year for which the exchange rate must be calculated}
 }
 \value{
 A double. Echange rate for the currency pair and the year selected.
@@ -24,5 +24,5 @@ A double. Echange rate for the currency pair and the year selected.
 \description{
 This function computes nominal exchange rates between two custom currencies for
 a given year. Exchange rate data are from the World Bank database. Euro is
-denoted with the code \code{EMU}.
+denoted with the code `EMU`. For US dollar use `USA`.
 }

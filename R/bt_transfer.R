@@ -50,7 +50,8 @@
 #'     factors are provided for each country selected via `policy_site`. If `yes` a transfer
 #'     factor is calculated for the aggregate made up by the countries selected via `policy_site`.
 #'     If `row` a transfer factor is calculated for the aggregate "rest of the world" (world
-#'     minus countries selected via `policy_site`).
+#'     minus countries selected via `policy_site`). In case one of the maritime aggregates is chosen as
+#'     `policy_site`, this parameter must be set to `yes` to have the aggregate value, otherwise an error is returned.
 #' @param study_currency A single string. It can assume three values: `EUR` (the default),
 #'     `USD` or `LCU`. It refers to the currency in which the original values is expressed.
 #'     In case `LCU` is chosen, the GDP deflator and the currency considered are those of the study site.
@@ -60,9 +61,6 @@
 #'     `USD` or `LCU`. It refers to the currency in which the final value must be expressed.
 #'     The option `LCU` can be chosen only if just one policy site in provided through
 #'     the parameter `policy_site`.
-#' @param aggregate_policy_name A single string. In case the value transfer must be performed
-#'     to an aggregate of countries, a name can be provided to be displayed in the
-#'     output.
 #' @return A tibble containing all parameters used and the transfer factor (bt_fct), which
 #'     is the scalar which the original value must be multiplied by to perform the transfer. Such
 #'     factor is already adjusted for inflation.
@@ -82,10 +80,9 @@
 #' bt_transfer(policy_site = "Mexico", study_currency = "USD", policy_currency = "LCU")
 bt_transfer <- function (study_site = "European Union", policy_site, study_yr = 2016, policy_yr = 2019,
                          aggregate_policy = "no", study_currency = "EUR",
-                         policy_currency = "EUR",
-                         aggregate_policy_name = "none") {
+                         policy_currency = "EUR") {
 
-  iso3c <- eu_code <- gdp_capita <- income_class <- gni_agg <- gni_row <- eu_code <- NULL
+  iso3c <- eu_code <- gdp_capita <- income_class <- gni_agg <- gni_row <- eu_code <- agg_composition <- NULL
 
   # identifying iso3c codes of provided study and policy sites
 
@@ -97,28 +94,25 @@ bt_transfer <- function (study_site = "European Union", policy_site, study_yr = 
 
   } else {
 
-    iso_study <- study_site
-
-    agg_countries_study <- agg_composition[agg_composition$code == iso_study, ]$iso3c
+    iso_study <- agg_composition[agg_composition$code == study_site, ]$iso3c
 
   }
 
-  # defining the ISO code of the polict site
-
-  if (policy_site %in% hb_aggregates) {
-
-  iso_policy <- agg_composition[agg_composition$code == policy_site, ]$iso3c
-
-  } else {
+  # defining the ISO codes of the policy site(s) or the codes that make up the aggregate
 
     iso_policy <- sapply(policy_site, iso_codes)
 
-  }
-
   # verifying the call is correct (error messages provided if not)
 
-  if (!is.element(iso_study, c(hb_aggregates, countrycode::codelist$iso3c)))
-    stop("Please provide a valid ISO or aggregate name for the study site")
+   all_iso <- countrycode::codelist$iso3c
+
+   all_iso <- c(all_iso[!is.na(all_iso)], "EUU", "WLD")
+
+   if(sum(sapply(iso_study, function (x) !is.element(x, all_iso))) != 0)
+     stop("Please provide a valid ISO or aggregate name for the study site")
+
+   if(sum(sapply(iso_study, function(x) !is.element(x, c(hb_aggregates, all_iso, "EUU", "WLD")))) != 0)
+
 
   if (length(iso_policy) == 1) {
 
@@ -127,6 +121,9 @@ bt_transfer <- function (study_site = "European Union", policy_site, study_yr = 
 
   if(iso_policy == "EUU" & aggregate_policy == "yes")
     stop("If the EU is selected as policy site, aggregate must be set to either no or row")
+
+  if(policy_site %in% hb_aggregates & aggregate_policy != "yes")
+    stop("If one of the HB maritime aggregates is chosen, 'aggregate_policy' must be set to 'yes'")
 
   }
 
@@ -141,8 +138,6 @@ bt_transfer <- function (study_site = "European Union", policy_site, study_yr = 
 
   if(policy_yr > 2050) stop("Value transfer can be performed up to 2050 at most")
 
-  if(policy_site %in% hb_aggregates & aggregate_policy == "no")
-    stop("If the policy site is one of the HB maritime aggregates, the 'aggregate_policy' option must be set to 'yes'")
 
 
   # defining whether the value transfer is to be performed for a year in the future or not
@@ -159,7 +154,7 @@ bt_transfer <- function (study_site = "European Union", policy_site, study_yr = 
 
   if (iso_study %in% hb_aggregates) {
 
-    study_site_gdp <- compute_macro_var(agg_countries_study, study_yr, agg = "yes") # computing aggregate value
+    study_site_gdp <- compute_macro_var(iso_study, study_yr, agg = "yes") # computing aggregate value
 
   } else {
 
@@ -258,25 +253,15 @@ bt_transfer <- function (study_site = "European Union", policy_site, study_yr = 
 
     bt_fct$study_country <- study_site
 
-  if (aggregate_policy == "no") {
+    if (aggregate_policy %in% c("yes", "row")) {
+
+      bt_fct$policy_country <- as.character(knitr::combine_words(c("Aggregate", iso_policy),
+                                                      sep = "_", and = ""))
+    } else {
 
     bt_fct$policy_country <- sapply(bt_fct$iso3c, from_iso_to_name)
 
-  } else if ( aggregate_policy == "yes") {
-
-    bt_fct$iso3c <- NA_character_
-    bt_fct$policy_country <- dplyr::case_when(
-      aggregate_policy_name == "none" & !is.element(policy_site, hb_aggregates) ~ "Aggregate",
-      aggregate_policy_name == "none" & is.element(policy_site, hb_aggregates) ~ policy_site,
-      TRUE ~ aggregate_policy_name
-    )
-
-  } else if (aggregate_policy == "row") {
-
-    bt_fct$iso3c <- NA_character_
-    bt_fct$policy_country <- "ROW"
-
-  }
+    }
 
   # converting currency if needed
 
@@ -284,7 +269,7 @@ bt_transfer <- function (study_site = "European Union", policy_site, study_yr = 
 
   # selecting and reordering columns
 
-    bt_fct <- bt_fct[, c("iso3c", "study_country",
+    bt_fct <- bt_fct[, c("study_country",
                          "policy_country", "year", "gdp_capita", "epsilon", "bt_fct")]
 
     dplyr::as_tibble(bt_fct)

@@ -11,6 +11,8 @@ Imports:
     countrycode,
     dplyr,
     eurostat,
+    magrittr,
+    rdbnomics,
     stats,
     stringr
 Encoding: UTF-8

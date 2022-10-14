@@ -12,6 +12,12 @@
 #' @seealso \code{\link{income_class}}
 compute_epsilon <- function (gni_capita) {
 
+  if (is.na(gni_capita)) {
+
+    NA_real_
+
+  } else {
+
   epsilon_db <- btransfer::income_class
 
   epsilon_db$true_false <- ifelse(gni_capita < epsilon_db$max &
@@ -19,5 +25,7 @@ compute_epsilon <- function (gni_capita) {
          TRUE, FALSE)
 
   epsilon_db[epsilon_db$true_false == TRUE, ]$epsilon
+
+  }
 
 }

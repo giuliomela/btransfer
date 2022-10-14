@@ -11,8 +11,7 @@ bt_transfer(
   policy_yr = 2019,
   aggregate_policy = "no",
   study_currency = "EUR",
-  policy_currency = "EUR",
-  aggregate_policy_name = "none"
+  policy_currency = "EUR"
 )
 }
 \arguments{
@@ -47,7 +46,8 @@ is possible to define also future years up to 2050.}
 factors are provided for each country selected via `policy_site`. If `yes` a transfer
 factor is calculated for the aggregate made up by the countries selected via `policy_site`.
 If `row` a transfer factor is calculated for the aggregate "rest of the world" (world
-minus countries selected via `policy_site`).}
+minus countries selected via `policy_site`). In case one of the maritime aggregates is chosen as
+`policy_site`, this parameter must be set to `yes` to have the aggregate value, otherwise an error is returned.}
 
 \item{study_currency}{A single string. It can assume three values: `EUR` (the default),
 `USD` or `LCU`. It refers to the currency in which the original values is expressed.
@@ -59,10 +59,6 @@ respectively.}
 `USD` or `LCU`. It refers to the currency in which the final value must be expressed.
 The option `LCU` can be chosen only if just one policy site in provided through
 the parameter `policy_site`.}
-
-\item{aggregate_policy_name}{A single string. In case the value transfer must be performed
-to an aggregate of countries, a name can be provided to be displayed in the
-output.}
 }
 \value{
 A tibble containing all parameters used and the transfer factor (bt_fct), which

@@ -4,40 +4,45 @@
 \alias{compute_macro_var}
 \title{Returns macro-economic variables for selected countries and years}
 \usage{
-compute_macro_var(country_iso, ref_year, var = "gdp_capita", agg = "no")
+compute_macro_var(
+  country_iso,
+  ref_yr,
+  var = "gdp_capita",
+  agg = "no",
+  growth_rate_int = 10
+)
 }
 \arguments{
 \item{country_iso}{A string. The ISO code (3 digits) of the country of interest.
-Codes \code{WLD} and \code{EUU} stand for the world and the European Union
-respectively. In case \code{agg} is set to either \code{yes} or \code{row}
+Codes `WLD` and `EUU` stand for the world and the European Union
+respectively. In case `agg` is set to either `yes` or `row`
 more than one iso code can be provided.}
 
-\item{ref_year}{A double. Year of interest. Can be a year into the future up
+\item{ref_yr}{A double. Year of interest. Can be a year into the future up
 to 2050. Years before 1961 are not accepted neither.}
 
 \item{var}{A string. The name of the macro-economic variable to be extracted.
-It can assume the following values: \code{gdp}, \code{gdp_capita}, \code{gni},
-\code{pop}, \code{gni_capita} and \code{death_rate}.}
+It can assume the following values: `gdp`, `gdp_capita`, `gni`,
+`pop`, `gni_capita` and `death_rate`.}
 
-\item{agg}{A string. It can assume three values: \code{no}, the default, \code{yes}
-and \code{row}. Indicates whether the variable of interest must be computed for an
-aggregate. In case \code{agg = "row"}, the ROW is built substracting the selected
-countries from the world total}
+\item{agg}{A string. It can assume three values: `no`, the default, `yes`
+and `row`. Indicates whether the variable of interest must be computed for an
+aggregate. In case `row`, the ROW is built as the difference between the selected
+countries from the world total.}
+
+\item{growth_rate_int}{a numeric value. The number of years to be considered to calculate
+average growth rates for the variable of interest in case `ref_yr` is set into the
+future.}
 }
 \value{
-A double with the value of the selected variable for the country and year
-of interest.
+A list with the value of the selected variable for the country and year
+    of interest (`value`) and the latest year of avilable data used in the computarion (`last_value`)
 }
 \description{
 This function extracts and returns macro-economic variables from the
-\code{wb_series} database, which are in turn retrieved from the
-World Bank database. The user can specify the country and the year of interest.
+World Bank database (via DbNomics). The user can specify the country and the year of interest.
 In case the selected year is in the future, the function estimates future
 values of the selected variable based on the average growth rates of the last
-\code{n} years. Where \code{n} is the number of years between the selected
-reference year and the latest year with available data. In case such difference
-is lower than 5 years, 5 years is used a window to compute the average.
-}
-\seealso{
-For more information on variables see the \code{wb_series} documentation.
+`n` years (a parameter that can, in turn, be chosen by the user).
+The function downloads the most recent data avilable.
 }

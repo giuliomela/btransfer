@@ -1,35 +1,36 @@
 #' Returns macro-economic variables for selected countries and years
 #'
 #' This function extracts and returns macro-economic variables from the
-#' \code{wb_series} database, which are in turn retrieved from the
-#' World Bank database. The user can specify the country and the year of interest.
+#' World Bank database (via DbNomics). The user can specify the country and the year of interest.
 #' In case the selected year is in the future, the function estimates future
 #' values of the selected variable based on the average growth rates of the last
-#' \code{n} years. Where \code{n} is the number of years between the selected
-#' reference year and the latest year with available data. In case such difference
-#' is lower than 5 years, 5 years is used a window to compute the average.
+#' `n` years (a parameter that can, in turn, be chosen by the user).
+#' The function downloads the most recent data avilable.
 #'
 #' @param country_iso A string. The ISO code (3 digits) of the country of interest.
-#' Codes \code{WLD} and \code{EUU} stand for the world and the European Union
-#' respectively. In case \code{agg} is set to either \code{yes} or \code{row}
-#' more than one iso code can be provided.
-#' @param ref_year A double. Year of interest. Can be a year into the future up
-#' to 2050. Years before 1961 are not accepted neither.
+#'     Codes `WLD` and `EUU` stand for the world and the European Union
+#'     respectively. In case `agg` is set to either `yes` or `row`
+#'     more than one iso code can be provided.
+#' @param ref_yr A double. Year of interest. Can be a year into the future up
+#'     to 2050. Years before 1961 are not accepted neither.
 #' @param var A string. The name of the macro-economic variable to be extracted.
-#' It can assume the following values: \code{gdp}, \code{gdp_capita}, \code{gni},
-#' \code{pop}, \code{gni_capita} and \code{death_rate}.
-#' @param agg A string. It can assume three values: \code{no}, the default, \code{yes}
-#' and \code{row}. Indicates whether the variable of interest must be computed for an
-#' aggregate. In case \code{agg = "row"}, the ROW is built substracting the selected
-#' countries from the world total
-#' @return A double with the value of the selected variable for the country and year
-#' of interest.
-#' @seealso For more information on variables see the \code{wb_series} documentation.
-compute_macro_var <- function (country_iso, ref_year, var = "gdp_capita", agg = "no") {
+#'     It can assume the following values: `gdp`, `gdp_capita`, `gni`,
+#'     `pop`, `gni_capita` and `death_rate`.
+#' @param agg A string. It can assume three values: `no`, the default, `yes`
+#'     and `row`. Indicates whether the variable of interest must be computed for an
+#'     aggregate. In case `row`, the ROW is built as the difference between the selected
+#'     countries from the world total.
+#' @param growth_rate_int a numeric value. The number of years to be considered to calculate
+#'     average growth rates for the variable of interest in case `ref_yr` is set into the
+#'     future.
+#' @return A list with the value of the selected variable for the country and year
+#'     of interest (`value`) and the latest year of avilable data used in the computarion (`last_value`)
+compute_macro_var <- function (country_iso, ref_yr, var = "gdp_capita", agg = "no",
+                               growth_rate_int = 10) {
 
   iso3c <- year <- NULL
 
-  if (ref_year > 2050 | ref_year < 1961) stop("Please provide a valid year. Year
+  if (ref_yr > 2050 | ref_yr < 1961) stop ("Please provide a valid year. Year
                                               must be between 1961 and 2050")
 
   if (!is.element(var, c("gdp", "gni", "gdp_capita", "death_rate",
@@ -39,135 +40,149 @@ compute_macro_var <- function (country_iso, ref_year, var = "gdp_capita", agg = 
                                                          selected only if 'agg' option
                                                          is set to either 'yes' or 'row'")
 
-  last_yr <- max(btransfer::wb_series$year)
+  # Downloading datasets from DBnomics
 
-if (ref_year <= last_yr) {
+if (agg == "no") {
 
-  if (agg == "no") {
+  code <- dplyr::case_when(
+    var == "gdp_capita" ~ "NY.GDP.PCAP.PP.KD", # constant PPP
+    var == "gni_capita" ~ "NY.GNP.PCAP.CD", # current
+    var == "gdp" ~ "NY.GDP.MKTP.PP.KD", # constant PPP
+    var == "gni" ~ "NY.GNP.ATLS.CD", # current
+    var == "pop" ~ "SP.POP.TOTL",
+    var == "death_rate" ~ "SP.DYN.CDRT.IN"
+  )
 
-  subset(btransfer::wb_series, iso3c == country_iso & year == ref_year)[[var]]
+} else if (agg %in% c("row", "yes")) {
+
+  code <- dplyr::case_when(
+    var == "gdp_capita" ~ c("NY.GDP.MKTP.PP.KD", "SP.POP.TOTL"),
+    var == "gni_capita" ~ c("NY.GNP.ATLS.CD", "SP.POP.TOTL"),
+    var == "gdp" ~ "NY.GDP.MKTP.PP.KD",
+    var == "gni" ~ "NY.GNP.ATLS.CD",
+    var == "pop" ~ "SP.POP.TOTL",
+    var == "death_rate" ~ c("SP.DYN.CDRT.IN", "SP.POP.TOTL")
+  )
+
+}
+
+  if (agg == "row") {
+
+    countries <- c(country_iso, "WLD")
 
   } else {
 
-    alt_var <- ifelse(var == "death_rate",
-                      "deaths",
-                      stringr::str_remove(var, "_capita"))
+    countries <- country_iso
 
-    if (agg == "row") {
+  }
 
-      alt_country_iso <- c("WLD", country_iso)
+  # defining codes to download
 
-    } else {
+  codes <- as.vector(sapply(countries,
+                 function(x) paste0("WB/WDI/A-", code, "-", x
+                 )
+  )
+  )
 
-      alt_country_iso <- country_iso
+  codes <- unique(codes) # removing duplicate codes referring to the WLD
 
-    }
+  # Downloading codes
 
-    alt_db <- subset(btransfer::wb_series,
-                     iso3c %in% alt_country_iso & year == ref_year)[, c("iso3c", alt_var, "pop")]
+  data_raw <- rdbnomics::rdb(codes)
 
-    if (agg == "row") { # making selected countries variables negative to compute row
+  data_raw <- data_raw[, c("original_period", "series_code", "value")]
 
-      for (i in c(alt_var, "pop")) {
+  data_raw$original_period <- as.numeric(data_raw$original_period)
 
-        alt_db[[i]] <- ifelse(alt_db$iso3c != "WLD", alt_db[[i]] * -1,
-                              alt_db[[i]])
+  last_yr <- max(data_raw[!is.na(data_raw$value), ][["original_period"]]) # last year of available data
+
+  data_raw$countries <- stringr::str_sub(data_raw$series_code, -3) # creating a variable with iso name
+
+
+
+# Computing the variable of interest
+
+  if (agg %in% c("row", "yes")) {
+
+      if (agg == "row") {
+
+        data_raw$value <- ifelse(data_raw$countries == "WLD",
+                                 data_raw$value,
+                                 data_raw$value * -1)
+      }
+
+      data_raw$series_code <- ifelse(grepl("POP", data_raw$series_code, fixed = TRUE),
+                                     "denom",
+                                     "nom") # identifying nominator and denominator variables
+
+
+      if (var == "death_rate") {
+
+        # in case death rate is chosen, first the total number of deaths must be calculated from death rates of single countries
+
+        data_raw <- data_raw %>%
+          tidyr::pivot_wider(names_from = series_code, values_from = value) %>%
+          dplyr::mutate(nom = nom * denom) %>%
+          tidyr::pivot_longer(names_to = "series_code", values_to = "value")
 
       }
 
-    }
+      data_raw <- data_raw %>%
+        dplyr::group_by(series_code, original_period) %>%
+        dplyr::summarise(value = sum(value, na.rm = TRUE)) %>%
+        dplyr::ungroup() %>%
+        tidyr::pivot_wider(names_from = series_code, values_from = value)
 
-    if (var %in% c("gdp_capita", "gni_capita", "death_rate")) {
+      if (var %in% c("gdp", "pop", "gni")){
 
-      value <- sum(alt_db[[alt_var]], na.rm = TRUE) / sum(alt_db[["pop"]], na.rm = TRUE)
+        data_raw$value <- data_raw$nom
 
-    } else {
+      } else {
 
-      value <- sum(alt_db[[alt_var]], na.rm = TRUE)
+        data_raw$value <- data_raw$nom / data_raw$denom
 
-    }
+      }
 
-      value
+  }
 
-    }
+  if(ref_yr <= last_yr) {
 
-} else {
+    value <- data_raw[data_raw$original_period == ref_yr, ]$value # value for the desired year
 
-  if (var == "death_rate") stop ("It is not possible to estimate future death rates")
+  } else {
 
-  hor <- ifelse(ref_year - last_yr < 5, 5, ref_year - last_yr)
+    hist_period <- seq(last_yr - growth_rate_int + 1, last_yr, by = 1)
 
-  if (agg == "no") {
+    data_raw <- data_raw[data_raw$original_period %in% hist_period, ]
 
-  latest_value <- subset(btransfer::wb_series, iso3c == country_iso & year == last_yr)[[var]]
+    if (var %in% c("gni", "gni_capita")) {
 
-  avg_growth_rate <- compute_avg(iso = country_iso, (last_yr - hor), last_yr, var,  "growth_rt")
+      # Since gni and gni capita are in nominal terms, values must be corrected for inflation
 
+      gdp_defl_us <- rdbnomics::rdb("WB/WDI/A-NY.GDP.DEFL.ZS-USA")[, c("original_period", "value")]
 
-  } else { # computing aggregate latest values
+      names(gdp_defl_us) <- c("original_period", "defl")
 
-    alt_var <- stringr::str_remove(var, "_capita")
+      gdp_defl_us$original_period <- as.numeric(gdp_defl_us$original_period)
 
+      data_raw <- merge(data_raw, gdp_defl_us)
 
-    if (agg == "row") {
+      data_raw$value <- data_raw$value / data_raw$defl *
+        data_raw[data_raw$original_period == last_yr, ]$defl
 
-      alt_country_iso <- c("WLD", country_iso)
-
-    } else {
-
-      alt_country_iso <- country_iso
-
-    }
-
-    all_values <- subset(btransfer::wb_series,
-                         iso3c %in% alt_country_iso &
-                           year %in% (last_yr - hor):last_yr)[, c("iso3c", "year", alt_var, "pop")]
-
-    if (agg == "row") {
-
-    for (i in c(alt_var, "pop")) {
-
-      all_values[[i]] <- ifelse(all_values$iso3c != "WLD", all_values[[i]] * -1,
-                                all_values[[i]])
+      data_raw$defl <- NULL
 
     }
 
-    } else {
+    growth_rate <- compute_growth_rate(data_raw$value, avg = TRUE) # average growth rate of the variable
 
-      all_values <- all_values[all_values$iso3c != "WLD", ]
+    fcast_h <- ref_yr - last_yr
 
-    }
-
-    agg_values <- dplyr::tibble(year = unique(all_values$year))
-
-    for (i in c(alt_var, "pop")) { # computes aggregate values over which computing growth rates
-
-      agg_values[[i]] <- tapply(all_values[[i]], all_values$year,
-                                function(x) sum(x, na.rm = T))
-
-    }
-
-    if (var %in% c("gdp_capita", "gni_capita")) {
-
-      agg_values[[var]] <- agg_values[[alt_var]] / agg_values[["pop"]]
-
-    }
-
-    agg_values$growth_rate <- compute_growth_rate(agg_values[[var]])
-
-    latest_value <- agg_values[agg_values$year == last_yr, ][[var]]
-
-    avg_growth_rate <- mean(agg_values$growth_rate, na.rm = TRUE)
+    value <- data_raw[data_raw$original_period == last_yr, ]$value * (1 + growth_rate)^fcast_h # forecasted value
 
 
   }
 
-  fcast_value <- latest_value * (1 + avg_growth_rate)^hor
-
-  names(fcast_value) <- NULL
-
-  fcast_value
-
-}
+  list(value = value, last_yr = last_yr)
 
 }

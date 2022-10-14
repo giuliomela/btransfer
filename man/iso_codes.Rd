@@ -11,7 +11,14 @@ iso_codes(country_name)
 ISO code must be identified. Country names can be in any language. The function
 returns ISO codes for the European Union ad the world as well, but, in these
 cases, only English, French, Italian, Spanish, Portuguese, German and Dutch
-are supported.}
+are supported. The function can also return the ISO codes of the countries that
+make up the maritime aggregates provided by the Handbook on the external cost
+of transport:
+- Mediterranean sea (`med`)
+- Black sea (`blk`)
+- North sea (`nor`)
+- Atlantic ocean (`atl`), European countries only
+- Baltic sea (`bal`)}
 }
 \value{
 A string, the ISO code of the country of interest.

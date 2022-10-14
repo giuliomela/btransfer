@@ -179,10 +179,9 @@ to either `yes` or `row`, the parameter `policy_currency` can be set to `EUR` or
 nos <- c("France", "United Kingdom", "Belgium", "Netherlands",
          "Denmark", "Norway", "Germany") # North Sea countries
 
-bt_transfer(study_site = "World", policy_site = policy_site, 
+bt_transfer(study_site = "World", policy_site = nos, 
             study_yr = 2014, policy_yr = 2020, study_currency = "USD",
-            policy_currency = "EUR", aggregate = "yes",
-            aggregate_name = "North Sea")
+            policy_currency = "EUR", aggregate_policy = "yes")
 
 
 ```
