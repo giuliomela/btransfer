@@ -2,6 +2,8 @@
 
 export("%>%")
 export(bt_transfer)
+export(btransfer)
 export(compute_eta)
 export(compute_sdr)
+export(iso_codes)
 importFrom(magrittr,"%>%")

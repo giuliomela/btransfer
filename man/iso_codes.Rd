@@ -27,6 +27,9 @@ A string, the ISO code of the country of interest.
 This function exploits the \code{countrycode} package to identify the ISO
 codes (3 digits) of a given country.
 }
+\examples{
+iso_codes("Italia")
+}
 \seealso{
 \code{\link[countrycode]{countryname}}
 }

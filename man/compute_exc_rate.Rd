@@ -19,7 +19,7 @@ currency belongs.}
 \item{ref_yr}{A double. Year for which the exchange rate must be calculated}
 }
 \value{
-A double. Echange rate for the currency pair and the year selected.
+A double. Exchange rate for the currency pair and the year selected.
 }
 \description{
 This function computes nominal exchange rates between two custom currencies for

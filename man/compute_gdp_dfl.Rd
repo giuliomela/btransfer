@@ -7,11 +7,11 @@
 \url{https://db.nomics.world/}
 }
 \usage{
-compute_gdp_dfl(country_iso = "EUR", base_yr, ref_yr)
+compute_gdp_dfl(country_iso = "EMU", base_yr, ref_yr)
 }
 \arguments{
 \item{country_iso}{A character string. The ISO code (3 digits) of the country of interest.
-Default is the Euro Area `EUR`.}
+Default is the Euro Area `EMU`.}
 
 \item{base_yr}{A numeric value. The year from which price levels the monetary value must be converted.}
 

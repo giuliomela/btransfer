@@ -9,7 +9,7 @@
 #' @param cur_to A string. Country code (ISO, 3 digits) to which the destination
 #' currency belongs.
 #' @param ref_yr A double. Year for which the exchange rate must be calculated
-#' @return A double. Echange rate for the currency pair and the year selected.
+#' @return A double. Exchange rate for the currency pair and the year selected.
 #' @source \url{https://data.worldbank.org/}
 compute_exc_rate <- function (cur_from, cur_to, ref_yr) {
 
