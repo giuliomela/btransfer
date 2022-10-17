@@ -9,7 +9,9 @@ compute_macro_var(
   ref_yr,
   var = "gdp_capita",
   agg = "no",
-  growth_rate_int = 10
+  growth_rate_int = 20,
+  avg = FALSE,
+  growth_rt = FALSE
 )
 }
 \arguments{
@@ -33,10 +35,20 @@ countries from the world total.}
 \item{growth_rate_int}{a numeric value. The number of years to be considered to calculate
 average growth rates for the variable of interest in case `ref_yr` is set into the
 future.}
+
+\item{avg}{A logical value. If `TRUE` the average value of the variable specified with
+`var` in the time window specified via `growth_rate_int` is returned. Default is set
+to `FALSE`. If `ref_yr` is in the future, the average value returned is always computed
+starting from historical data, up to the last available year.}
+
+\item{growth_rt}{A logical value. If `TRUE` the average growth rate of the variable
+specified with `var` is computed over the time interval specified through `growth_rate_int`.
+If `ref_yr` is in the future, the average growth rate returned is always computed
+starting from historical data, up to the last available year.}
 }
 \value{
 A list with the value of the selected variable for the country and year
-    of interest (`value`) and the latest year of avilable data used in the computarion (`last_value`)
+    of interest (`value`) and the latest year of available data used in the computation (`last_value`)
 }
 \description{
 This function extracts and returns macro-economic variables from the

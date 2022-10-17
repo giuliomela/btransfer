@@ -4,18 +4,11 @@
 \alias{compute_sdr}
 \title{Computing the social discount rate with Ramsey's rule.}
 \usage{
-compute_sdr(
-  countries,
-  policy_yr = 2019,
-  h = 10,
-  aggregate = "no",
-  eta_lit = 1.35,
-  aggregate_name = "aggregate"
-)
+compute_sdr(country, policy_yr = 2021, h = 20, agg = "no", eta_lit = 1.35)
 }
 \arguments{
-\item{countries}{A string vector of country names (in any language, see \code{\link[countrycode]{countryname}} package for details).
-In case \code{aggregate = "yes"} or \code{aggregate = "row"}, the list of countries is
+\item{country}{A string vector of country names (in any language, see \code{\link[countrycode]{countryname}} package for details).
+In case `agg = "yes"` or `agg = "row"`, the list of countries is
 used to compute the SDR for that group of countries or for the rest of the world respectively.
 The user can select also the world or the European Union by providing the name in either English,
 French, Italian, Spanish, Portuguese, German or Dutch.}
@@ -24,26 +17,23 @@ French, Italian, Spanish, Portuguese, German or Dutch.}
 
 \item{h}{A double: number of years over which calculate Ramsey's rule parameters. Default is 10.}
 
-\item{aggregate}{A string that can assume three values. If "no", individual SDR for the selected countries  are
+\item{agg}{A string that can assume three values. If "no", individual SDR for the selected countries  are
 provided. If "yes", the SDR for the aggregate made up by the selected countries is provided. If "row", the
 SDR for the ROW (with respect to the selected countries) is provided. Default is "no".}
 
 \item{eta_lit}{A double. Value of the elasticity of marginal utility of consumption for non-OECD countries,
 that is those for which no tax data are available. This parameter is used also for the ROW estimate.}
-
-\item{aggregate_name}{A string. In case the SDR must be calculated for an aggregate, the user can provide
-the aggregate name to be displayed in the output tibble. Default is set to "aggregate".}
 }
 \value{
 A tibble containing country names, Ramsey's equation parameters and
- the social discount rate calculated for the selected countries or aggregates.
+    the social discount rate calculated for the selected countries or aggregates.
 }
 \description{
 This function computes the social discount rate using the Ramsey's rule for all countries in the world.
 Data used for the computation are from the World Bank and the OECD.
 One of the key parameters of the Ramsey's equation is the elasticity of marginal utility of consumption (eta)
 that can be  estimated, following the equal-sacrifice income tax approach, from marginal and average tax rates.
-Since tax data are avilable for OECD countries only, for non-OECD countries eta is assumed to be equal to 1.35,
+Since tax data are available for OECD countries only, for non-OECD countries eta is assumed to be equal to 1.35,
 which is the mean value that emerged from an expert survey (about 180 interviews)
 carried out by Drupp et al. For more information on the Ramsey's rule please refer to
 \href{https://www.oecd-ilibrary.org/sites/9789264085169-11-en/index.html?itemId=/content/component/9789264085169-11-en}{the OECD's guide on cost benefit analysis and the environment}
@@ -51,6 +41,6 @@ carried out by Drupp et al. For more information on the Ramsey's rule please ref
 \examples{
  compute_sdr(c("Italia", "Alemania", "France", "Polska"))
  compute_sdr("Italy", 2018, 15)
- compute_sdr(c("Italia", "Alemania", "France", "Polska"), aggregate = "yes")
- compute_sdr(c("Italia", "Alemania", "France", "Polska"), aggregate = "row")
+ compute_sdr(c("Italia", "Alemania", "France", "Polska"), agg = "yes")
+ compute_sdr(c("Italia", "Alemania", "France", "Polska"), agg = "row")
 }

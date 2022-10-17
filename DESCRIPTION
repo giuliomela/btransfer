@@ -12,6 +12,7 @@ Imports:
     dplyr,
     eurostat,
     magrittr,
+    OECD,
     rdbnomics,
     stats,
     stringr

@@ -23,12 +23,23 @@
 #' @param growth_rate_int a numeric value. The number of years to be considered to calculate
 #'     average growth rates for the variable of interest in case `ref_yr` is set into the
 #'     future.
+#' @param avg A logical value. If `TRUE` the average value of the variable specified with
+#'     `var` in the time window specified via `growth_rate_int` is returned. Default is set
+#'     to `FALSE`. If `ref_yr` is in the future, the average value returned is always computed
+#'     starting from historical data, up to the last available year.
+#' @param growth_rt A logical value. If `TRUE` the average growth rate of the variable
+#'     specified with `var` is computed over the time interval specified through `growth_rate_int`.
+#'     If `ref_yr` is in the future, the average growth rate returned is always computed
+#'     starting from historical data, up to the last available year.
 #' @return A list with the value of the selected variable for the country and year
-#'     of interest (`value`) and the latest year of avilable data used in the computarion (`last_value`)
+#'     of interest (`value`) and the latest year of available data used in the computation (`last_value`)
 compute_macro_var <- function (country_iso, ref_yr, var = "gdp_capita", agg = "no",
-                               growth_rate_int = 10) {
+                               growth_rate_int = 20, avg = FALSE, growth_rt = FALSE) {
 
   iso3c <- year <- NULL
+
+  if(isTRUE(avg) & isTRUE(growth_rt))
+    stop("Paramters 'avg' and 'growth_rt' cannot be both set to TRUE")
 
   if (ref_yr > 2050 | ref_yr < 1961) stop ("Please provide a valid year. Year
                                               must be between 1961 and 2050")
@@ -94,11 +105,15 @@ if (agg == "no") {
 
   data_raw$original_period <- as.numeric(data_raw$original_period)
 
-  last_yr <- max(data_raw[!is.na(data_raw$value), ][["original_period"]]) # last year of available data
+  last_yr <- data_raw %>%
+    dplyr::group_by(series_code) %>%
+    dplyr::filter(!is.na(value)) %>%
+    dplyr::summarise(latest = max(original_period)) %>%
+    dplyr::ungroup()
+
+  last_yr <- min(last_yr$latest)  # last year of available data
 
   data_raw$countries <- stringr::str_sub(data_raw$series_code, -3) # creating a variable with iso name
-
-
 
 # Computing the variable of interest
 
@@ -122,8 +137,8 @@ if (agg == "no") {
 
         data_raw <- data_raw %>%
           tidyr::pivot_wider(names_from = series_code, values_from = value) %>%
-          dplyr::mutate(nom = nom * denom) %>%
-          tidyr::pivot_longer(names_to = "series_code", values_to = "value")
+          dplyr::mutate(nom = nom / 1000 * denom) %>%
+          tidyr::pivot_longer(!c(original_period, countries), names_to = "series_code", values_to = "value")
 
       }
 
@@ -145,15 +160,15 @@ if (agg == "no") {
 
   }
 
+  hist_period <- seq(last_yr - growth_rate_int, last_yr, by = 1)
+
+  data_raw <- data_raw[data_raw$original_period %in% hist_period, ]
+
   if(ref_yr <= last_yr) {
 
     value <- data_raw[data_raw$original_period == ref_yr, ]$value # value for the desired year
 
   } else {
-
-    hist_period <- seq(last_yr - growth_rate_int + 1, last_yr, by = 1)
-
-    data_raw <- data_raw[data_raw$original_period %in% hist_period, ]
 
     if (var %in% c("gni", "gni_capita")) {
 
@@ -180,9 +195,24 @@ if (agg == "no") {
 
     value <- data_raw[data_raw$original_period == last_yr, ]$value * (1 + growth_rate)^fcast_h # forecasted value
 
-
   }
 
-  list(value = value, last_yr = last_yr)
+  if (avg == TRUE) {
+
+    avg_value <- mean(data_raw$value, na.rm = TRUE) # average value
+
+    list(avg_value = avg_value, last_yr = last_yr)
+
+  } else if (growth_rt == TRUE) {
+
+      growth_rate <- compute_growth_rate(data_raw$value, avg = TRUE) # average growth rate of the variable
+
+      list(growth_rate = growth_rate, last_yr = last_yr)
+
+  } else {
+
+    list(value = value, last_yr = last_yr)
+
+  }
 
 }

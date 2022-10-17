@@ -93,7 +93,7 @@ must be transferred.
 
 study_site <- "United Kingdom"
 
-policy_site <- c("Italia", "France", "Deutschland", "Polska", "United States")
+policy_site <- "Italia"
 
 ```
 
@@ -106,40 +106,40 @@ greenhouse gas emissions) or the European Union, special strings must be used:
 
 ## Usage of `bt_transfer`
 
-The main function of the package is `bt_transfer`, which computes transfer factors
+The main function of the package is `btransfer`, which computes transfer factors
 to be multiplied by value that must be transferred in order to perform the value
 transfer. Such factors incorporate the value transfer proper as well as adjustments
-for inflation and exchange rates.
+for inflation and exchange rates. only one policy site at once can be
+passed along with the `policy_site` parameter, unless the option `agg` is set to
+either `yes` or `row`.
 
 ```{r example-base, echo=TRUE}
 
 # Value transfer to the EU to some individual countries. No currency conversion.
 
-bt_transfer(study_site = "Unione Europea", policy_site = policy_site, 
-            study_yr = 2016, policy_yr = 2019, policy_currency = "EUR",
-            study_currency = "EUR")
+btransfer(study_site = "Unione Europea", policy_site = policy_site, 
+            study_yr = 2016, policy_yr = 2021, policy_currency = "EMU",
+            study_currency = "EMU")
 
 ```
 
-The function `bt_transfer` returns a tibble with the key variables used to calculate
-the transfer factor and the transfer factor itself. Other than study and policy
-sites, the user must provide also the year in which the study was carried out 
+The function `btransfer` returns the transfer factor for the country/aggregate selected.
+Other than study and policy sites, the user must provide also the year in which the study was carried out 
 (`study_yr`) and the year to which the value must be transferred (`policy_yr`).
-Default values for `study_yr` and `policy_yr` are 2016 and 2019 respectively.
-By default, `bt_transfer` assumes that the value that must be transferred is
+Default values for `study_yr` and `policy_yr` are 2016 and 2021 respectively.
+By default, `btransfer` assumes that the value that must be transferred is
 already expressed in euro. In case it is not, alternative currencies can be
 supplied by the user using the arguments `study_currency` and `policy_currency`.
-Other than the default `EUR`, the user can select US dollars (`USD`) or the currency
-of study and policy sites (`LCU`). This latter option, however, can be used only
-if just one policy site is selected.
+Other than the default `EMU`, the user can select US dollars (`USA`) or the currency
+of study and policy sites (using the ISO code of the country of interest).
 
 ```{r example-currency, echo=TRUE}
 
 # The primary value is expressed in USD, but must be converted to euro
 
-bt_transfer(study_site = "Australia", policy_site = policy_site, 
-            study_yr = 2014, policy_yr = 2020, study_currency = "USD",
-            policy_currency = "EUR")
+btransfer(study_site = "Australia", policy_site = policy_site, 
+            study_yr = 2014, policy_yr = 2020, study_currency = "USA",
+            policy_currency = "EMU")
 
 ```
 
@@ -148,9 +148,9 @@ bt_transfer(study_site = "Australia", policy_site = policy_site,
 # The primary value is expressed in the study country's currency and must be
 # converted to the currency of the policy country
 
-bt_transfer(study_site = "Mexico", policy_site = "India", 
-            study_yr = 2014, policy_yr = 2020, study_currency = "LCU",
-            policy_currency = "LCU")
+btransfer(study_site = "Mexico", policy_site = "India", 
+            study_yr = 2014, policy_yr = 2020, study_currency = "MEX",
+            policy_currency = "IND")
 
 ```
 
@@ -161,14 +161,14 @@ German, Dutch or Portuguese.
 This option is useful especially when one has to transfer cost factors related to externalities
 at global level, such as the impact of air pollution on the climate.
 Other than for individual countries, transfer factors can be calculated also for
-aggregates of countries, using the parameter `aggregate`. Such parameter can assume
+aggregates of countries, using the parameter `agg`. Such parameter can assume
 three values: `no` (the default), `yes` and `row`. In case `yes` is selected,
 the transfer factor is calculated for the aggregate made up by the list of 
 countries supplied through `policy_site`. Conversely, when `row` is selected,
 the transfer factor is calculated for the rest-of-the-world aggregate obtained
-subtracting the selected countries from the world total. When `aggregate` is set
-to either `yes` or `row`, the parameter `policy_currency` can be set to `EUR` or
-`USD` only.
+subtracting the selected countries from the world total. When `agg` is set
+to either `yes` or `row`, the parameter `policy_currency` can be set to `EMU` or
+`USA` only.
 
 ```{r example-aggregates, echo=TRUE}
 
@@ -179,15 +179,15 @@ to either `yes` or `row`, the parameter `policy_currency` can be set to `EUR` or
 nos <- c("France", "United Kingdom", "Belgium", "Netherlands",
          "Denmark", "Norway", "Germany") # North Sea countries
 
-bt_transfer(study_site = "World", policy_site = nos, 
-            study_yr = 2014, policy_yr = 2020, study_currency = "USD",
-            policy_currency = "EUR", aggregate_policy = "yes")
+btransfer(study_site = "World", policy_site = nos, 
+            study_yr = 2014, policy_yr = 2020, study_currency = "USA",
+            policy_currency = "EMU", agg_policy = "yes")
 
 
 ```
 
 In scenario evaluation and cost-benefit analysis might be needed to perform a 
-value transfer to a year into the future. The function `bt_transfer` can
+value transfer to a year into the future. The function `btransfer` can
 accomplish that. The user only has to set `policy_yr` to a year into the future
 (up to 2050). GDP per capita and $\epsilon$ for the policy site(s) are estimated
 using the the average GDP and GNI per capita growth rates of the last $n$ year,
@@ -200,9 +200,9 @@ growth rates.
 
 # The policy year is in the future
 
-bt_transfer(study_site = "World", policy_site = policy_site, 
-            study_yr = 2014, policy_yr = 2030, study_currency = "USD",
-            policy_currency = "EUR", aggregate = "no")
+btransfer(study_site = "World", policy_site = policy_site, 
+            study_yr = 2014, policy_yr = 2030, study_currency = "USA",
+            policy_currency = "EMU", agg = "no")
 
 
 ```
@@ -236,7 +236,7 @@ marginal utility of consumption ($\eta$), which can be computed from tax data,
 for the countries for which such data are available. When such data are not
 available an average value from the literature is used ($\eta = 1.35$). Such
 literature value is used also for the world as a whole or the European Unione,
-similarly to `bt_transfer`. For aggregates $\eta$
+similarly to `btransfer`. For aggregates $\eta$
 is calculated as a weighted average of country-specific $\eta$ using population
 data as weights.
 
@@ -244,7 +244,7 @@ data as weights.
 
 # SDR calculated for the World as a whole
 
-compute_sdr(countries = "World", policy_yr = 2019, h = 10)
+compute_sdr(country = "World", policy_yr = 2019, h = 10)
 
 
 ```
@@ -253,8 +253,8 @@ compute_sdr(countries = "World", policy_yr = 2019, h = 10)
 
 # SDR calculated for an aggregate of countries
 
-compute_sdr(countries = nos, policy_yr = 2019, h = 10,
-            aggregate = "yes", aggregate_name = "North Sea")
+compute_sdr(country = nos, policy_yr = 2019, h = 10,
+            agg = "yes")
 
 ```
 
@@ -262,8 +262,8 @@ compute_sdr(countries = nos, policy_yr = 2019, h = 10,
 
 # SDR calculated for the rest of the world, given an aggregate of countries
 
-compute_sdr(countries = nos, policy_yr = 2019, h = 10,
-            aggregate = "row")
+compute_sdr(country = nos, policy_yr = 2019, h = 10,
+            agg = "row")
 
 ```
 

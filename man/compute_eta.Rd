@@ -4,7 +4,7 @@
 \alias{compute_eta}
 \title{Computing eta for social discount rate estimation}
 \usage{
-compute_eta(iso_code, policy_yr, h, eta_lit)
+compute_eta(iso_code, policy_yr, h, eta_lit = 1.35)
 }
 \arguments{
 \item{iso_code}{A string. An ISO code (3 digits) representing the country for which
@@ -27,4 +27,7 @@ This function computes \code{eta}, the elasticity of marginal utility of consump
 following the equal-sacrifice income tax approach to be used to estimate a
 country's social discount rate using the Ramsey's rule.
 Eta is estimated from marginal and average tax rates from the OECD tax database.
+}
+\examples{
+compute_eta("ITA", 2021, 20)
 }

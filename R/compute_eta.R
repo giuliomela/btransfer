@@ -15,31 +15,60 @@
 #' @return A double. The estimate of the elasticity of marginal utility of consumption
 #' for the selected country, over an h-long period starting backwards from \code{policy_yr}
 #' @export
-compute_eta <- function(iso_code, policy_yr, h, eta_lit) {
+#'
+#' @examples
+#' compute_eta("ITA", 2021, 20)
+compute_eta <- function(iso_code, policy_yr, h, eta_lit = 1.35) {
 
   iso3c <- year <- NULL
 
   # tax data is pre-loaded
 
-  if (is.element(iso_code, unique(btransfer::tax_data$iso3c))) {
+  oecd_countries <- c("AUS", "AUT","BEL", "CAN", "CZE", "DNK", "FIN", "FRA", "DEU", "GRC", "HUN", "ISL",
+                      "IRL", "ITA", "JPN", "KOR", "LUX",  "MEX", "NLD", "NZL", "NOR", "POL", "PRT",
+                      "SVK", "ESP", "SWE", "CHE", "TUR", "GBR", "USA", "CHL", "EST", "ISR",
+                      "SVN", "OAVG", "LVA", "E22", "LTU", "COL", "CRI" )
+
+  if (is.element(iso_code, oecd_countries)) {
 
   from_yr <- policy_yr - h - 1 # year from which computing averages
 
-  data <- subset(btransfer::tax_data, iso3c == iso_code & year > from_yr & year <= policy_yr)
+  # Downloading data from the OECD database
 
-  avg_tax_rt <- mean(data[data$indicator == "2_5", ]$value, na.rm = TRUE) / 100
+  oecd_filter <- list(c("2_5", "3_1"),
+                      "SINGLE2") # used data for single people earning 110% of average salary
 
-  mar_tax_rt <- mean(data[data$indicator == "3_1", ]$value, na.rm = TRUE) / 100
+  tax_data <- OECD::get_dataset("AWCOMP", filter = oecd_filter)
 
-  eta <- log(1 - mar_tax_rt) / log(1 - avg_tax_rt)
+  tax_data <- within(tax_data,{
+    year <- as.numeric(Time)
+    value <- as.numeric(ObsValue)
+    indicator <- INDICATOR
+    iso3c <- COU
+  })
+
+  tax_data <- subset(tax_data, select = c(iso3c, year, indicator, value))
+
+  tax_data <- tax_data %>%
+    dplyr::filter(iso3c == iso_code & year > from_yr & year <= policy_yr) %>%
+    dplyr::group_by(iso3c, indicator) %>%
+    dplyr::summarise(value = mean(value, na.rm = TRUE) / 100) %>%
+    dplyr::ungroup() %>%
+    tidyr::pivot_wider(names_from = indicator, values_from = value)
+
+  names(tax_data) <- c("iso3c", "avg_tax", "mar_tax")
+
+  tax_data$eta <- log(1 - tax_data$mar_tax) / log(1 - tax_data$avg_tax)
+
+  tax_data$eta
 
   } else {
 
-    eta <- eta_lit
+    eta_lit
 
   }
 
-  eta
+
 
 }
 

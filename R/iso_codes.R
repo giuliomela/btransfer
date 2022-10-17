@@ -16,7 +16,6 @@
 #'     - Atlantic ocean (`atl`), European countries only
 #'     - Baltic sea (`bal`)
 #' @return A string, the ISO code of the country of interest.
-#' @export
 #' @seealso \code{\link[countrycode]{countryname}}
 #' @examples
 #' iso_codes("Italia")

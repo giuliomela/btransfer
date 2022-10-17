@@ -78,7 +78,9 @@ btransfer <- function(study_site = "European Union", policy_site, study_yr = 201
 
   study_iso <- btransfer::iso_codes(study_site) # study site can only be a single country or world/EU/maritime aggregate
 
-  policy_iso <- btransfer::iso_codes(policy_site) # policy site can be either a single country or world/EU/maritime aggregate or a custom aggregate
+  policy_iso <- sapply(policy_site,
+                       function(x) btransfer::iso_codes(x))
+   # policy site can be either a single country or world/EU/maritime aggregate or a custom aggregate
 
   # Defining whether study and policy sites are aggregates or not
 
