@@ -8,7 +8,7 @@ test_that("compute_macro_var works", {
 
   for (i in vars) {
 
-    res[[i]] <- compute_macro_var("ITA", 2018, i)
+    res[[i]] <- compute_macro_var("ITA", 2018, i)[["value"]]
 
   }
 
@@ -21,23 +21,25 @@ test_that("compute_macro_var works", {
   for (i in agg) {
 
     res1[[i]] <- compute_macro_var(c("ITA", "FRA", "USA", "IND", "ESP"), 2018,
-                                   agg = i)
+                                   agg = i)[["value"]]
 
   }
 
   # computing the function for years into the future
 
-  yrs <- sample(2020:2050, 5)
+  res2 <- sapply(2050, function(x) compute_macro_var("ITA", x)[["value"]])
 
-  res2 <- sapply(yrs, function(x) compute_macro_var("ITA", x))
+  res3 <- compute_macro_var("ITA", 2020, avg = TRUE)[["avg_value"]]
 
-  res_all <- c(res, res1, res2)
+  res4 <- compute_macro_var("ITA", 2020, growth_rt = TRUE)[["growth_rate"]]
+
+  res_all <- c(res, res1, res2, res3, res4)
 
   sapply(res_all, function (x) expect_true(is.numeric(x))) # result must be numeric
 
   sapply(res_all, function (x) expect_false(is.na(x))) # result must not be NA
 
-  # cheking error messages
+  # checking error messages
 
   expect_error(compute_macro_var("ITA", 2051), "Please provide a valid year. Year
                                               must be between 1961 and 2050")

@@ -93,6 +93,8 @@ of the last n-year period, which can be defined by the user.
 }
 \examples{
 btransfer(policy_site = "Brazil", policy_yr = 2020, policy_currency = "BRA")
-btransfer(study_site = "blk", policy_site = "med", policy_yr = 2020, agg_policy = "yes", policy_currency = "EMU")
-btransfer(study_site = "Italia", policy_site = c("Francia", "Germany", "Portugal"), policy_yr = 2020, agg_policy = "row", policy_currency = "USA")
+btransfer(study_site = "blk", policy_site = "med", policy_yr = 2020,
+agg_policy = "yes", policy_currency = "EMU")
+btransfer(study_site = "Italia", policy_site = c("Francia", "Germany", "Portugal"),
+policy_yr = 2020, agg_policy = "row", policy_currency = "USA")
 }

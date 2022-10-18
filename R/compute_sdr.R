@@ -33,7 +33,7 @@
 #'  compute_sdr(c("Italia", "Alemania", "France", "Polska"), agg = "row")
 compute_sdr <- function(country, policy_yr = 2021, h = 20, agg = "no", eta_lit = 1.35){
 
-  iso3c <- year <- death_rate <- gdp_capita_growth <- gdp <- pop <- NULL
+  iso3c <- year <- death_rate <- gdp_capita_growth <- gdp <- pop <- original_period <- variable <- value <- NULL
 
 # Identifying the iso3c codes of the countries of interest. Names can be provided in any language
 
@@ -102,7 +102,7 @@ compute_sdr <- function(country, policy_yr = 2021, h = 20, agg = "no", eta_lit =
 
     gdp_capita_growth <- compute_macro_var(
       country_iso = country_iso,
-      ref_yr = ref_yr,
+      ref_yr = policy_yr,
       var = "gdp_capita",
       agg = agg,
       growth_rate_int = h,
@@ -113,7 +113,7 @@ compute_sdr <- function(country, policy_yr = 2021, h = 20, agg = "no", eta_lit =
 
     avg_death_rate <- compute_macro_var(
       country_iso = country_iso,
-      ref_yr = ref_yr,
+      ref_yr = policy_yr,
       var = "death_rate",
       agg = agg,
       growth_rate_int = h,

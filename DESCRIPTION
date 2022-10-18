@@ -10,12 +10,11 @@ URL: https://github.com/giuliomela/btransfer.git
 Imports: 
     countrycode,
     dplyr,
-    eurostat,
     magrittr,
     OECD,
     rdbnomics,
-    stats,
-    stringr
+    stringr,
+    tidyr
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.1

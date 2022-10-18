@@ -8,7 +8,7 @@ test_that("compute_growth_rate works", {
 
   }
 
-  res <- compute_growth_rate(vect)
+  res <- compute_growth_rate(vect, avg = FALSE)
 
   expect_length(res, length(vect)) # result must be a vector of the same size of input vector
 

@@ -36,7 +36,7 @@
 compute_macro_var <- function (country_iso, ref_yr, var = "gdp_capita", agg = "no",
                                growth_rate_int = 20, avg = FALSE, growth_rt = FALSE) {
 
-  iso3c <- year <- NULL
+  iso3c <- year <- series_code <- original_period <- nom <- denom <- NULL
 
   if(isTRUE(avg) & isTRUE(growth_rt))
     stop("Paramters 'avg' and 'growth_rt' cannot be both set to TRUE")

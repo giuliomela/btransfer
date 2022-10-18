@@ -17,8 +17,6 @@
 #'     - Baltic sea (`bal`)
 #' @return A string, the ISO code of the country of interest.
 #' @seealso \code{\link[countrycode]{countryname}}
-#' @examples
-#' iso_codes("Italia")
 iso_codes <- function (country_name) {
 
   world_names <- c("Mondo", "World", "Monde", "Mundo", "Welt",
@@ -41,7 +39,7 @@ iso_codes <- function (country_name) {
 
   } else if (country_name %in% agg_names) # maritime aggregates provided by the HB
 
-    agg_composition[agg_composition$code == country_name, ]$iso3c
+    btransfer::agg_composition[btransfer::agg_composition$code == country_name, ]$iso3c
 
   else {
 

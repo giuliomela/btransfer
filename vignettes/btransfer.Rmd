@@ -224,7 +224,7 @@ rate for any country in the world or aggregate of countries.
 
 # The SDR calculated for a single country
 
-compute_sdr(countries = "Italy", policy_yr = 2019, h = 10)
+compute_sdr(country = "Italy", policy_yr = 2019, h = 10)
 
 ```
 

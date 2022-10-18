@@ -20,7 +20,7 @@
 #' compute_eta("ITA", 2021, 20)
 compute_eta <- function(iso_code, policy_yr, h, eta_lit = 1.35) {
 
-  iso3c <- year <- NULL
+  iso3c <- year <- Time <- ObsValue <- INDICATOR <- COU <- NULL
 
   # tax data is pre-loaded
 

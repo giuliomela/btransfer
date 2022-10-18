@@ -67,19 +67,21 @@
 #'
 #' @examples
 #' btransfer(policy_site = "Brazil", policy_yr = 2020, policy_currency = "BRA")
-#' btransfer(study_site = "blk", policy_site = "med", policy_yr = 2020, agg_policy = "yes", policy_currency = "EMU")
-#' btransfer(study_site = "Italia", policy_site = c("Francia", "Germany", "Portugal"), policy_yr = 2020, agg_policy = "row", policy_currency = "USA")
+#' btransfer(study_site = "blk", policy_site = "med", policy_yr = 2020,
+#' agg_policy = "yes", policy_currency = "EMU")
+#' btransfer(study_site = "Italia", policy_site = c("Francia", "Germany", "Portugal"),
+#' policy_yr = 2020, agg_policy = "row", policy_currency = "USA")
 btransfer <- function(study_site = "European Union", policy_site, study_yr = 2016, policy_yr, agg_policy = "no",
                       study_currency = "EMU", policy_currency, avg_h = 20) {
 
-  agg_countries <- unique(agg_composition$code)
+  agg_countries <- unique(btransfer::agg_composition$code)
 
   # identifying ISO codes of both study and policy sites
 
-  study_iso <- btransfer::iso_codes(study_site) # study site can only be a single country or world/EU/maritime aggregate
+  study_iso <- iso_codes(study_site) # study site can only be a single country or world/EU/maritime aggregate
 
   policy_iso <- sapply(policy_site,
-                       function(x) btransfer::iso_codes(x))
+                       function(x) iso_codes(x))
    # policy site can be either a single country or world/EU/maritime aggregate or a custom aggregate
 
   # Defining whether study and policy sites are aggregates or not
