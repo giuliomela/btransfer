@@ -173,7 +173,7 @@ if (agg == "no") {
             stringr::str_detect(var, "pop") ~ "pop"
           ) %>% unique()
 
-          data_twn <- twn_data[twn_data$series_code %in% filtering_vars, ]
+          data_twn <- btransfer::twn_data[btransfer::twn_data$series_code %in% filtering_vars, ]
 
           data_twn$series_code <- ifelse(
             data_twn$series_code == "pop",
@@ -181,7 +181,7 @@ if (agg == "no") {
             "nom"
           )
 
-          data_raw <- rbind(data_raw, data_twn)
+          data_raw <- dplyr::bind_rows(data_raw, data_twn)
 
         }
 
