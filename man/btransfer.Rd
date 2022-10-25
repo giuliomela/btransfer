@@ -62,7 +62,7 @@ can be retrieved using the [iso_codes] function.}
 \item{policy_currency}{A single string. A character string. It can be specified using the ISO code of the country
 of interest. See `study_currency`.}
 
-\item{avg_h}{A numeric value. Number of years to be considered to compute average growht rates for
+\item{avg_h}{A numeric value. Number of years to be considered to compute average growth rates for
 GDP and GNI per capita in case `policy_yr` is in the future.}
 }
 \value{

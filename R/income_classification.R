@@ -13,6 +13,7 @@
 #' \item{min}{Lower bound of income classification (international USD)}
 #' \item{max}{Upper bound of income classification (international USD)}
 #' \item{epsilon}{income elasticity of the willingness to pay of the corresponding income group}
+#' \item{year}{Reference year of the income classification}
 #' }
 #' @source \url{https://blogs.worldbank.org/opendata/new-world-bank-country-classifications-income-level-2021-2022}
-"income_class"
+"income_classification"

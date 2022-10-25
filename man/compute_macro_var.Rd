@@ -25,7 +25,11 @@ to 2050. Years before 1961 are not accepted neither.}
 
 \item{var}{A string. The name of the macro-economic variable to be extracted.
 It can assume the following values: `gdp`, `gdp_capita`, `gni`,
-`pop`, `gni_capita` and `death_rate`.}
+`pop`, `gni_capita` and `death_rate`. GDP and GDP per capita are returned in
+constant international dollars (2017). GNI and GNI per capita are returned in
+constant USD. The base year is the same of the latest version of the WB income
+classification of countries, since GNI per capita is essentially used to compute
+the income elasticity of the marginal utility of consumption (`epsilon`).}
 
 \item{agg}{A string. It can assume three values: `no`, the default, `yes`
 and `row`. Indicates whether the variable of interest must be computed for an

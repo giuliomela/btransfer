@@ -57,7 +57,7 @@
 #'     can be retrieved using the [iso_codes] function.
 #' @param policy_currency A single string. A character string. It can be specified using the ISO code of the country
 #'     of interest. See `study_currency`.
-#' @param avg_h A numeric value. Number of years to be considered to compute average growht rates for
+#' @param avg_h A numeric value. Number of years to be considered to compute average growth rates for
 #'     GDP and GNI per capita in case `policy_yr` is in the future.
 #' @return A numeric value (scalar) representing the transfer factor (bt_fct), which
 #'     is the number to which the original value must be multiplied by to perform the transfer. Such
@@ -94,17 +94,21 @@ btransfer <- function(study_site = "European Union", policy_site, study_yr = 201
 
   # Computing GDP per capita of study and policy sites in the study and policy years
 
-  gdp_study <- compute_macro_var(study_iso,
+
+
+    gdp_study <- compute_macro_var(study_iso,
                                  ref_yr = study_yr,
                                  agg = agg_study,
                                  var = "gdp_capita",
                                  growth_rate_int = avg_h)
 
-  gdp_policy <- compute_macro_var(policy_iso,
+
+    gdp_policy <- compute_macro_var(policy_iso,
                                   ref_yr = policy_yr,
                                   agg = agg_policy,
                                   var = "gdp_capita",
                                   growth_rate_int = avg_h)
+
 
   # Defining GNI per capita of the policy site to compute epsilon
 
@@ -116,6 +120,7 @@ btransfer <- function(study_site = "European Union", policy_site, study_yr = 201
 
 
   epsilon <- compute_epsilon(gni_policy[["value"]])
+
 
   last_yr <- gdp_study[["last_yr"]]
 

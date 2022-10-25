@@ -1,7 +1,7 @@
 Type: Package
 Package: btransfer
 Title: Benefit transfer
-Version: 0.1.0
+Version: 1.0.0
 Author: Giulio Mela
 Maintainer: Giulio Mela <giulio.mela@rse-web.it>
 Description: Computes transfer factors to perform unit value transfer with income adjustment for any country in the world.

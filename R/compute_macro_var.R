@@ -15,7 +15,11 @@
 #'     to 2050. Years before 1961 are not accepted neither.
 #' @param var A string. The name of the macro-economic variable to be extracted.
 #'     It can assume the following values: `gdp`, `gdp_capita`, `gni`,
-#'     `pop`, `gni_capita` and `death_rate`.
+#'     `pop`, `gni_capita` and `death_rate`. GDP and GDP per capita are returned in
+#'     constant international dollars (2017). GNI and GNI per capita are returned in
+#'     constant USD. The base year is the same of the latest version of the WB income
+#'     classification of countries, since GNI per capita is essentially used to compute
+#'     the income elasticity of the marginal utility of consumption (`epsilon`).
 #' @param agg A string. It can assume three values: `no`, the default, `yes`
 #'     and `row`. Indicates whether the variable of interest must be computed for an
 #'     aggregate. In case `row`, the ROW is built as the difference between the selected
@@ -51,6 +55,15 @@ compute_macro_var <- function (country_iso, ref_yr, var = "gdp_capita", agg = "n
                                                          selected only if 'agg' option
                                                          is set to either 'yes' or 'row'")
 
+  if ("TWN" %in% country_iso & agg == "no") {
+
+    data_raw <- twn_data[twn_data$series_code == var, ]
+
+    last_yr <- max(data_raw$original_period, na.rm = TRUE)
+
+  } else {
+
+
   # Downloading datasets from DBnomics
 
 if (agg == "no") {
@@ -63,6 +76,7 @@ if (agg == "no") {
     var == "pop" ~ "SP.POP.TOTL",
     var == "death_rate" ~ "SP.DYN.CDRT.IN"
   )
+
 
 } else if (agg %in% c("row", "yes")) {
 
@@ -79,11 +93,14 @@ if (agg == "no") {
 
   if (agg == "row") {
 
+    countries <- country_iso[country_iso != "TWN"] # removing Taiwan in case is included (variables added later)
+
     countries <- c(country_iso, "WLD")
 
   } else {
 
-    countries <- country_iso
+    countries <- country_iso[country_iso != "TWN"] # removing Taiwan in case is included (variables added later)
+
 
   }
 
@@ -108,12 +125,14 @@ if (agg == "no") {
   last_yr <- data_raw %>%
     dplyr::group_by(series_code) %>%
     dplyr::filter(!is.na(value)) %>%
-    dplyr::summarise(latest = max(original_period)) %>%
+    dplyr::summarise(latest = max(original_period, na.rm = TRUE)) %>%
     dplyr::ungroup()
 
-  last_yr <- min(last_yr$latest)  # last year of available data
+  last_yr <- min(last_yr$latest, na.rm = TRUE)  # last year of available data
 
   data_raw$countries <- stringr::str_sub(data_raw$series_code, -3) # creating a variable with iso name
+
+  }
 
 # Computing the variable of interest
 
@@ -123,12 +142,12 @@ if (agg == "no") {
 
         data_raw$value <- ifelse(data_raw$countries == "WLD",
                                  data_raw$value,
-                                 data_raw$value * -1)
+                                 data_raw$value * - 1)
       }
 
-      data_raw$series_code <- ifelse(grepl("POP", data_raw$series_code, fixed = TRUE),
+        data_raw$series_code <- ifelse(grepl("POP", data_raw$series_code, fixed = TRUE),
                                      "denom",
-                                     "nom") # identifying nominator and denominator variables
+                                     "nom") # identifying nominator and denominator variable
 
 
       if (var == "death_rate") {
@@ -142,15 +161,42 @@ if (agg == "no") {
 
       }
 
+        # adding Taiwan data (if present in the aggregate)
+
+        if (is.element("TWN", country_iso)) {
+
+          filtering_vars <- dplyr::case_when(
+            stringr::str_detect(var, "gdp") ~ c("gdp", "pop"),
+            stringr::str_detect(var, "gni") ~ c("gni", "pop"),
+            stringr::str_detect(var, "death_rate") ~ c("deaths", "pop"),
+            stringr::str_detect(var, "pop") ~ "pop"
+          ) %>% unique()
+
+          data_twn <- twn_data[twn_data$series_code %in% filtering_vars, ]
+
+          data_twn$series_code <- ifelse(
+            data_twn$series_code == "pop",
+            "denom",
+            "nom"
+          )
+
+        }
+
+        data_raw <- rbind(data_raw, data_twn)
+
       data_raw <- data_raw %>%
         dplyr::group_by(series_code, original_period) %>%
         dplyr::summarise(value = sum(value, na.rm = TRUE)) %>%
         dplyr::ungroup() %>%
         tidyr::pivot_wider(names_from = series_code, values_from = value)
 
-      if (var %in% c("gdp", "pop", "gni")){
+      if (var %in% c("gdp", "gni")){
 
         data_raw$value <- data_raw$nom
+
+      } else if (var == "pop") {
+
+        data_raw$value <- data_raw$denom
 
       } else {
 
@@ -164,30 +210,40 @@ if (agg == "no") {
 
   data_raw <- data_raw[data_raw$original_period %in% hist_period, ]
 
+  if (var %in% c("gni", "gni_capita")) {
+
+    dfl_yr <- income_classification$year[1]
+
+    # Since gni and gni capita are in nominal terms, values must be corrected for inflation
+
+    gdp_defl_us <- rdbnomics::rdb("WB/WDI/A-NY.GDP.DEFL.ZS-USA")[, c("original_period", "value")]
+
+    gdp_defl_us <- gdp_defl_us %>%
+      dplyr::rename(defl = value) %>%
+      dplyr::mutate(original_period = as.numeric(original_period)) %>%
+      dplyr::filter(!is.na(defl))
+
+    nom_dfl <- gdp_defl_us %>%
+      dplyr::filter(original_period == dfl_yr) %>%
+      dplyr::pull(defl)
+
+    data_raw <- data_raw %>%
+      dplyr::ungroup() %>%
+      dplyr::left_join(gdp_defl_us) %>%
+      dplyr::mutate(value = value / defl * nom_dfl,
+                    defl = NULL)
+
+
+
+
+  }
+
   if(ref_yr <= last_yr) {
 
     value <- data_raw[data_raw$original_period == ref_yr, ]$value # value for the desired year
 
   } else {
 
-    if (var %in% c("gni", "gni_capita")) {
-
-      # Since gni and gni capita are in nominal terms, values must be corrected for inflation
-
-      gdp_defl_us <- rdbnomics::rdb("WB/WDI/A-NY.GDP.DEFL.ZS-USA")[, c("original_period", "value")]
-
-      names(gdp_defl_us) <- c("original_period", "defl")
-
-      gdp_defl_us$original_period <- as.numeric(gdp_defl_us$original_period)
-
-      data_raw <- merge(data_raw, gdp_defl_us)
-
-      data_raw$value <- data_raw$value / data_raw$defl *
-        data_raw[data_raw$original_period == last_yr, ]$defl
-
-      data_raw$defl <- NULL
-
-    }
 
     growth_rate <- compute_growth_rate(data_raw$value, avg = TRUE) # average growth rate of the variable
 
