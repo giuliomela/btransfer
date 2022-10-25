@@ -11,7 +11,8 @@ country_list <- wbstats::wb_countries()
 country_list <- country_list[country_list$region != "Aggregates", ]$iso3c
 
 # loading income classification
-income_classification <- readxl::read_xlsx(here::here("data-raw/income_class.xlsx"))
+income_classification <- readxl::read_xlsx(here::here("data-raw/income_class.xlsx")) %>%
+  mutate(max = as.numeric(max))
 
 # Loading composition of maritime aggregates included in the Handbook on the external cost of transport
 

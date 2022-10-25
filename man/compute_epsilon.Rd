@@ -21,5 +21,5 @@ environmental/health goods (epsilon) based on GNI per capita and the latest
 version of the World Bank's income classification of countries.
 }
 \seealso{
-\code{\link{income_class}}
+\code{\link{income_classification}}
 }

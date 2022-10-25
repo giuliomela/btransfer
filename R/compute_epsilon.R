@@ -9,7 +9,7 @@
 #' prices of the year in which the WB performed the income classification. See
 #' \url{https://blogs.worldbank.org/opendata/new-world-bank-country-classifications-income-level-2021-2022}
 #' @return A double. The income elasticity of the willingness to pay
-#' @seealso \code{\link{income_class}}
+#' @seealso \code{\link{income_classification}}
 compute_epsilon <- function (gni_capita) {
 
   if (is.na(gni_capita)) {
@@ -18,13 +18,13 @@ compute_epsilon <- function (gni_capita) {
 
   } else {
 
-  epsilon_db <- btransfer::income_class
+  epsilon_db <- btransfer::income_classification
 
-  epsilon_db$true_false <- ifelse(gni_capita < epsilon_db$max &
-                                    gni_capita >= epsilon_db$min,
-         TRUE, FALSE)
+  epsilon_db$true_inf <- ifelse(gni_capita < epsilon_db$max, TRUE, FALSE)
 
-  epsilon_db[epsilon_db$true_false == TRUE, ]$epsilon
+  epsilon_db$true_sup <- ifelse(gni_capita >= epsilon_db$min, TRUE, FALSE)
+
+  epsilon_db[epsilon_db$true_inf == TRUE & epsilon_db$true_sup == TRUE, ]$epsilon
 
   }
 
