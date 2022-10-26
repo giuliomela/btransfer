@@ -90,7 +90,7 @@ compute_sdr <- function(country, policy_yr = 2021, h = 20, agg = "no", eta_lit =
 
   # computing SDR
 
-  sdr_data$sdr <- sdr_data$death_rate / 1000 + sdr_data$eta * sdr_data$gdp_capita
+  sdr_data$sdr <- sdr_data$death_rate / 1000 + sdr_data$eta * sdr_data$gdp_capita / 100
 
   sdr_data$sdr
 
