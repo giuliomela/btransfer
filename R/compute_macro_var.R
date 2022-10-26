@@ -96,7 +96,7 @@ if (agg == "no") {
 
     countries <- country_iso[country_iso != "TWN"] # removing Taiwan in case is included (variables added later)
 
-    countries <- c(country_iso, "WLD")
+    countries <- c(countries, "WLD")
 
   } else {
 
