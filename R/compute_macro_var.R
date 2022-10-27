@@ -207,10 +207,6 @@ if (agg == "no") {
 
   }
 
-  hist_period <- seq(last_yr - growth_rate_int, last_yr, by = 1)
-
-  data_raw <- data_raw[data_raw$original_period %in% hist_period, ]
-
   if (var %in% c("gni", "gni_capita")) {
 
     dfl_yr <- btransfer::income_classification$year[1]
@@ -242,6 +238,9 @@ if (agg == "no") {
 
   } else {
 
+    hist_period <- seq(last_yr - growth_rate_int, last_yr, by = 1)
+
+    data_raw <- data_raw[data_raw$original_period %in% hist_period, ]
 
     growth_rate <- compute_growth_rate(data_raw$value, avg = TRUE) # average growth rate of the variable
 
@@ -253,15 +252,23 @@ if (agg == "no") {
 
   if (avg == TRUE) {
 
+    hist_period <- seq(last_yr - growth_rate_int, last_yr, by = 1)
+
+    data_raw <- data_raw[data_raw$original_period %in% hist_period, ]
+
     avg_value <- mean(data_raw$value, na.rm = TRUE) # average value
 
     list(avg_value = avg_value, last_yr = last_yr)
 
   } else if (growth_rt == TRUE) {
 
-      growth_rate <- compute_growth_rate(data_raw$value, avg = TRUE) # average growth rate of the variable
+    hist_period <- seq(last_yr - growth_rate_int, last_yr, by = 1)
 
-      list(growth_rate = growth_rate, last_yr = last_yr)
+    data_raw <- data_raw[data_raw$original_period %in% hist_period, ]
+
+    growth_rate <- compute_growth_rate(data_raw$value, avg = TRUE) # average growth rate of the variable
+
+    list(growth_rate = growth_rate, last_yr = last_yr)
 
   } else {
 
