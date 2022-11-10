@@ -56,20 +56,20 @@ policy_site <- c("Italia", "France", "Deutschland", "Polska", "United States")
 # Value transfer to the EU to some individual countries. No currency conversion.
 
 btransfer::btransfer(study_site = "Unione Europea", policy_site = "Italy", 
-            study_yr = 2016, policy_yr = 2019, policy_currency = "EMU",
+            study_yr = 2016, policy_yr = 2019, ref_yr = 2019, policy_currency = "EMU",
             study_currency = "EMU")
 
 # The primary value is expressed in USD, but must be converted to euro
 
 btransfer::btransfer(study_site = "Australia", policy_site = "Italy", 
-            study_yr = 2014, policy_yr = 2020, study_currency = "USA",
+            study_yr = 2014, policy_yr = 2020, ref_yr = 2019, study_currency = "USA",
             policy_currency = "EMU")
 
 # The primary value is expressed in the study country's currency and must be
 # converted to the currency of the policy country
 
 btransfer::btransfer(study_site = "Mexico", policy_site = "India", 
-            study_yr = 2014, policy_yr = 2020, study_currency = "MEX",
+            study_yr = 2014, policy_yr = 2020, ref_yr = 2019, study_currency = "MEX",
             policy_currency = "IND")
 
 # The study site is the world as a whole. Original estimate in USD, but value
@@ -80,7 +80,7 @@ nos <- c("France", "United Kingdom", "Belgium", "Netherlands",
          "Denmark", "Norway", "Germany") # North Sea countries
 
 btransfer::btransfer(study_site = "World", policy_site = nos, 
-            study_yr = 2014, policy_yr = 2020, study_currency = "USA",
+            study_yr = 2014, policy_yr = 2020, ref_yr = 2019, study_currency = "USA",
             policy_currency = "EMU", agg_policy = "yes")
 
 # The maritime aggregates included in the EU's Handbook on the External Cost of Transport
@@ -89,8 +89,8 @@ btransfer::btransfer(study_site = "World", policy_site = nos,
 
 # The policy year is in the future
 
-btransfer::btransfer(study_site = "World", policy_site = "Itaòy", 
-            study_yr = 2014, policy_yr = 2030, study_currency = "USA",
+btransfer::btransfer(study_site = "World", policy_site = "Italy", 
+            study_yr = 2014, policy_yr = 2030, ref_yr = 2019, study_currency = "USA",
             policy_currency = "EMU", agg_policy = "no")
 
 ```
@@ -105,21 +105,21 @@ future to present in order to perform the assessment.
 
 # The SDR calculated for a single country
 
-btransfer::compute_sdr(country = "Italy", policy_yr = 2019, h = 10)
+btransfer::compute_sdr(country = "Italy", policy_yr = 2019, ref_yr = 2019, h = 10)
 
 # SDR calculated for the World as a whole
 
-btransfer::compute_sdr(country = "World", policy_yr = 2019, h = 10)
+btransfer::compute_sdr(country = "World", policy_yr = 2019, ref_yr = 2019, h = 10)
 
 # SDR calculated for an aggregate of countries
 
-btransfer::compute_sdr(country = nos, policy_yr = 2019, h = 10,
+btransfer::compute_sdr(country = nos, policy_yr = 2019, ref_yr = 2019, h = 10,
             aggregate = "yes", aggregate_name = "North Sea")
 
 
 # SDR calculated for the rest of the world, given an aggregate of countries
 
-btransfer::compute_sdr(country = nos, policy_yr = 2019, h = 10,
+btransfer::compute_sdr(country = nos, policy_yr = 2019, ref_yr = 2019, h = 10,
             aggregate = "row")
 
 ```

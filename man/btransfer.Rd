@@ -9,6 +9,7 @@ btransfer(
   policy_site,
   study_yr = 2016,
   policy_yr,
+  ref_yr,
   agg_policy = "no",
   study_currency = "EMU",
   policy_currency,
@@ -44,6 +45,10 @@ on the external cost of the transport sector refer to.}
 
 \item{policy_yr}{Numeric. The year to which values must be transferred. Default is 2019. It
 is possible to define also future years up to 2050.}
+
+\item{ref_yr}{Numeric. The base year to be used as a reference for price levels. For example,
+if `ref_yr = 2019`, the transfer factor is modified in a way to convert transferred values to the
+`2019` price levels.}
 
 \item{agg_policy}{A character string. It can assume three different values. If `no` transfer
 factors are provided a single country selected via `policy_site`. If `yes` a transfer
@@ -92,9 +97,9 @@ are calculated, for the policy year in the future, using average growth rates
 of the last n-year period, which can be defined by the user.
 }
 \examples{
-btransfer(policy_site = "Brazil", policy_yr = 2020, policy_currency = "BRA")
-btransfer(study_site = "blk", policy_site = "med", policy_yr = 2020,
+btransfer(policy_site = "Brazil", policy_yr = 2020, ref_yr = 2020, policy_currency = "BRA")
+btransfer(study_site = "blk", policy_site = "med", policy_yr = 2020, ref_yr = 2020,
 agg_policy = "yes", policy_currency = "EMU")
 btransfer(study_site = "Italia", policy_site = c("Francia", "Germany", "Portugal"),
-policy_yr = 2020, agg_policy = "row", policy_currency = "USA")
+policy_yr = 2020, ref_yr = 2020, agg_policy = "row", policy_currency = "USA")
 }

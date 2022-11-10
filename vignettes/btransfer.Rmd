@@ -104,7 +104,7 @@ In case the `study_site` is the world as a whole (i.e. like in the case of
 greenhouse gas emissions) or the European Union, special strings must be used:
 `WLD` and `EUU` respectively.
 
-## Usage of `bt_transfer`
+## Usage of `btransfer`
 
 The main function of the package is `btransfer`, which computes transfer factors
 to be multiplied by value that must be transferred in order to perform the value
@@ -118,15 +118,16 @@ either `yes` or `row`.
 # Value transfer to the EU to some individual countries. No currency conversion.
 
 btransfer(study_site = "Unione Europea", policy_site = policy_site, 
-            study_yr = 2016, policy_yr = 2021, policy_currency = "EMU",
+            study_yr = 2016, policy_yr = 2021, ref_yr = 2021, policy_currency = "EMU",
             study_currency = "EMU")
 
 ```
 
 The function `btransfer` returns the transfer factor for the country/aggregate selected.
 Other than study and policy sites, the user must provide also the year in which the study was carried out 
-(`study_yr`) and the year to which the value must be transferred (`policy_yr`).
-Default values for `study_yr` and `policy_yr` are 2016 and 2021 respectively.
+(`study_yr`) and the year to which the value must be transferred (`policy_yr`). The parameter `ref_yr`
+allows the user to specify the year at which price levels the transferred values must be expressed.
+The default value for `study_yr` is 2016, while `policy_yr` and `ref_yr` must be specified by the user.
 By default, `btransfer` assumes that the value that must be transferred is
 already expressed in euro. In case it is not, alternative currencies can be
 supplied by the user using the arguments `study_currency` and `policy_currency`.
@@ -138,7 +139,7 @@ of study and policy sites (using the ISO code of the country of interest).
 # The primary value is expressed in USD, but must be converted to euro
 
 btransfer(study_site = "Australia", policy_site = policy_site, 
-            study_yr = 2014, policy_yr = 2020, study_currency = "USA",
+            study_yr = 2014, policy_yr = 2020, ref_yr = 2020, study_currency = "USA",
             policy_currency = "EMU")
 
 ```
@@ -149,7 +150,7 @@ btransfer(study_site = "Australia", policy_site = policy_site,
 # converted to the currency of the policy country
 
 btransfer(study_site = "Mexico", policy_site = "India", 
-            study_yr = 2014, policy_yr = 2020, study_currency = "MEX",
+            study_yr = 2014, policy_yr = 2020, ref_yr = 2020, study_currency = "MEX",
             policy_currency = "IND")
 
 ```
@@ -180,7 +181,7 @@ nos <- c("France", "United Kingdom", "Belgium", "Netherlands",
          "Denmark", "Norway", "Germany") # North Sea countries
 
 btransfer(study_site = "World", policy_site = nos, 
-            study_yr = 2014, policy_yr = 2020, study_currency = "USA",
+            study_yr = 2014, policy_yr = 2020, ref_yr = 2020, study_currency = "USA",
             policy_currency = "EMU", agg_policy = "yes")
 
 
@@ -201,7 +202,7 @@ growth rates.
 # The policy year is in the future
 
 btransfer(study_site = "World", policy_site = policy_site, 
-            study_yr = 2014, policy_yr = 2030, study_currency = "USA",
+            study_yr = 2014, policy_yr = 2030, ref_yr = 2020, study_currency = "USA",
             policy_currency = "EMU", agg = "no")
 
 

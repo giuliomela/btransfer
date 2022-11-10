@@ -43,6 +43,9 @@
 #'     on the external cost of the transport sector refer to.
 #' @param policy_yr Numeric. The year to which values must be transferred. Default is 2019. It
 #'     is possible to define also future years up to 2050.
+#' @param ref_yr Numeric. The base year to be used as a reference for price levels. For example,
+#'     if `ref_yr = 2019`, the transfer factor is modified in a way to convert transferred values to the
+#'     `2019` price levels.
 #' @param agg_policy A character string. It can assume three different values. If `no` transfer
 #'     factors are provided a single country selected via `policy_site`. If `yes` a transfer
 #'     factor is calculated for the aggregate made up by the countries selected via `policy_site`.
@@ -66,12 +69,13 @@
 #' @export
 #'
 #' @examples
-#' btransfer(policy_site = "Brazil", policy_yr = 2020, policy_currency = "BRA")
-#' btransfer(study_site = "blk", policy_site = "med", policy_yr = 2020,
+#' btransfer(policy_site = "Brazil", policy_yr = 2020, ref_yr = 2020, policy_currency = "BRA")
+#' btransfer(study_site = "blk", policy_site = "med", policy_yr = 2020, ref_yr = 2020,
 #' agg_policy = "yes", policy_currency = "EMU")
 #' btransfer(study_site = "Italia", policy_site = c("Francia", "Germany", "Portugal"),
-#' policy_yr = 2020, agg_policy = "row", policy_currency = "USA")
-btransfer <- function(study_site = "European Union", policy_site, study_yr = 2016, policy_yr, agg_policy = "no",
+#' policy_yr = 2020, ref_yr = 2020, agg_policy = "row", policy_currency = "USA")
+btransfer <- function(study_site = "European Union", policy_site, study_yr = 2016, policy_yr,
+                      ref_yr, agg_policy = "no",
                       study_currency = "EMU", policy_currency, avg_h = 20) {
 
   agg_countries <- unique(btransfer::agg_composition$code)
@@ -128,9 +132,7 @@ btransfer <- function(study_site = "European Union", policy_site, study_yr = 201
 
   # reference year for inflation and currency adjustments
 
-  ref_yr <- ifelse(policy_yr > last_yr,
-                   last_yr,
-                   policy_yr)
+  if (ref_yr > last_yr) stop ("Parameter 'ref_yr' cannot be a year into the future")
 
   dfl_fct <- compute_gdp_dfl(study_currency,
                              base_yr = study_yr,
