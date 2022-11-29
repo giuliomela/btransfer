@@ -113,3 +113,7 @@ btransfer::compute_sdr(country = nos, policy_yr = 2019, ref_yr = 2019, h = 10,
 btransfer::compute_sdr(country = nos, policy_yr = 2019, ref_yr = 2019, h = 10,
             aggregate = "row")
 ```
+
+The function `btransfer_nuts2` is a simplified version of `btrasnfer`.
+It can be used to transfer values from any of the EU countries to any of
+the Italian NUTS2 regions.

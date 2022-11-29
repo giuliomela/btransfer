@@ -2,6 +2,7 @@
 
 export("%>%")
 export(btransfer)
+export(btransfer_nuts2)
 export(compute_eta)
 export(compute_sdr)
 importFrom(magrittr,"%>%")

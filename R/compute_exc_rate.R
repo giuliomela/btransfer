@@ -35,6 +35,8 @@ compute_exc_rate <- function (cur_from, cur_to, ref_yr) {
   exc_rate_fct <- exc_rates[exc_rates$country == cur_to, ]$value /
     exc_rates[exc_rates$country == cur_from, ]$value
 
+  exc_rate_fct
+
   }
 
 

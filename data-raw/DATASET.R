@@ -89,8 +89,12 @@ twn_data <- twn_data %>%
   rename(series_code = var) %>%
   mutate(countries = "TWN")
 
+# loading Italy's NUTS2 codes
+
+nuts2_codes <- read.csv(here::here("data-raw/nuts2_codes.csv"))
+
 # computing GDP and GNI
 
-usethis::use_data(income_classification, country_list, agg_composition, twn_data,
+usethis::use_data(income_classification, country_list, agg_composition, twn_data, nuts2_codes,
                   overwrite = TRUE)
 
