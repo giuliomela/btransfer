@@ -2,7 +2,7 @@
 
 library(tidyverse)
 
-latest_yr <- 2021
+latest_yr <- 2022
 
 # list of countries (WB) - no aggregates (ISO codes only)
 
