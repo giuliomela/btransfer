@@ -126,13 +126,17 @@ btransfer <- function(study_site = "European Union", policy_site, study_yr = 201
   epsilon <- compute_epsilon(gni_policy[["value"]])
 
 
+
+
   last_yr <- gdp_study[["last_yr"]]
+
+  #return(last_yr)
 
   # computing GDP deflator according to study currency
 
   # reference year for inflation and currency adjustments
 
-  if (ref_yr > last_yr) stop ("Parameter 'ref_yr' cannot be a year into the future")
+  #if (ref_yr > last_yr) stop ("Parameter 'ref_yr' cannot be a year into the future")
 
   dfl_fct <- compute_gdp_dfl(study_currency,
                              base_yr = study_yr,

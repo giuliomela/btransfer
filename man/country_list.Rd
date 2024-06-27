@@ -5,7 +5,7 @@
 \alias{country_list}
 \title{List of all individual countries iso3c codes}
 \format{
-An object of class \code{character} of length 218.
+An object of class \code{character} of length 217.
 }
 \source{
 \url{https://data.worldbank.org/}
