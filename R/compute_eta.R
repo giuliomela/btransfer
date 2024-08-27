@@ -35,16 +35,24 @@ compute_eta <- function(iso_code, policy_yr, h, eta_lit = 1.35) {
 
   # Downloading data from the OECD database
 
-  oecd_filter <- list(c("2_5", "3_1"),
-                      "SINGLE2") # used data for single people earning 110% of average salary
+  #oecd_filter <- list(c("2_5", "3_1"),
+   #                   "SINGLE2") # used data for single people earning 100% of average salary
 
-  tax_data <- OECD::get_dataset("AWCOMP", filter = oecd_filter)
+  #tax_data <- OECD::get_dataset("AWCOMP", filter = oecd_filter)
+
+  # OECD changed dataset and variable names. Data refer to single people earning 100% of national average.
+  # Average tax rate = Average income tax rate
+  # Marginal tax rate = net personal marginal rate of the principal earner
+
+  tax_data <- rsdmx::readSDMX("https://sdmx.oecd.org/public/rest/data/OECD.CTP.TPS,DSD_TAX_WAGES_COMP@DF_TW_COMP,1.1/.NPMTR_PE+AV_ITR.PT_WG_EARN_G.S_C0.AW100._Z.A?dimensionAtObservation=AllDimensions") |>
+    tibble::as_tibble()
+
 
   tax_data <- within(tax_data,{
-    year <- as.numeric(Time)
-    value <- as.numeric(ObsValue)
-    indicator <- INDICATOR
-    iso3c <- COU
+    year <- as.numeric(TIME_PERIOD)
+    value <- as.numeric(obsValue)
+    indicator <- MEASURE
+    iso3c <- REF_AREA
   })
 
   tax_data <- subset(tax_data, select = c(iso3c, year, indicator, value))
