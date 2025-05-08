@@ -14,7 +14,7 @@ compute_gdp_dfl <- function (country_iso = "EMU", base_yr, ref_yr) {
 
   wb_code <- paste0("WB/WDI/A-NY.GDP.DEFL.ZS-", country_iso)
 
-  eurostat_code <- "Eurostat/nama_10_gdp/A.PD05_EUR.B1GQ.EA"
+  eurostat_code <- "Eurostat/NAMA_10_GDP/A.PD05_EUR.B1GQ.EA"
 
   code <- ifelse(country_iso == "EMU", eurostat_code, wb_code)
 
