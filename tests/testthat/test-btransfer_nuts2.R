@@ -9,7 +9,10 @@ test_that("btransfer_nuts2 works", {
                              policy_yr = 2019,
                              ref_yr = 2019)
 
-  expect_true(is.numeric(results$trans_fct))
+  sapply(
+    results,
+    \(x) expect_true(is.numeric(x))
+  )
 
 
 })
