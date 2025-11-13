@@ -37,7 +37,7 @@
 #'     starting from historical data, up to the last available year.
 #' @return A list with the value of the selected variable for the country and year
 #'     of interest (`value`) and the latest year of available data used in the computation (`last_value`)
-compute_macro_var <- function (country_iso, ref_yr, var = "gdp_capita", agg = "no",
+compute_macro_var <- function (country_iso = "CHN", ref_yr = 2021, var = "gni_capita", agg = "no",
                                growth_rate_int = 20, avg = FALSE, growth_rt = FALSE) {
 
   iso3c <- year <- series_code <- original_period <- nom <- denom <- twn_data <-
@@ -260,11 +260,13 @@ if (agg == "no") {
 
   if (var %in% c("gni", "gni_capita")) {
 
-    dfl_yr <- btransfer::income_classification$year[1]
+    dfl_yr <- 2023
+      #btransfer::income_classification$year[1]
 
     # Since gni and gni capita are in nominal terms, values must be corrected for inflation
 
-    gdp_defl_us <- rdbnomics::rdb("WB/WDI/A-NY.GDP.DEFL.ZS-USA")[, c("original_period", "value")]
+    gdp_defl_us <- rdbnomics::rdb("WB/WDI/A-NY.GDP.DEFL.ZS-USA")[, c("original_period", "value")] |>
+      tibble::as_tibble()
 
     gdp_defl_us <- gdp_defl_us %>%
       dplyr::rename(defl = value) %>%
@@ -277,7 +279,7 @@ if (agg == "no") {
 
     data_raw <- data_raw %>%
       dplyr::ungroup() %>%
-      dplyr::left_join(gdp_defl_us) %>%
+      dplyr::left_join(gdp_defl_us, by = "original_period") %>%
       dplyr::mutate(value = value / defl * nom_dfl,
                     defl = NULL)
 
