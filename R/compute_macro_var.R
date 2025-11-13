@@ -117,9 +117,60 @@ if (agg == "no") {
 
   # Downloading codes
 
-  data_raw <- rdbnomics::rdb(codes)
+  # data_raw <- rdbnomics::rdb(codes)
+  #
+  # data_raw <- data_raw[, c("original_period", "series_code", "value")]
 
-  data_raw <- data_raw[, c("original_period", "series_code", "value")]
+
+  # data_raw <- tryCatch(
+  #   {
+  #     rdbnomics::rdb(codes)
+  #   },
+  #   error = function(e) {
+  #     warning(paste("Impossibile scaricare una o più serie:", paste(codes, collapse = ", ")), immediate. = TRUE)
+  #     return(NULL)
+  #   }
+  # )
+
+  countries_with_missing_data <- c()
+
+  results <- lapply(codes, function(code) {
+    tryCatch(
+      {
+        # ⚠️ Modifica: Usa capture.output per sopprimere ogni stampa su stdout
+        # Combina anche suppressWarnings per catturare i warning standard,
+        # sebbene l'output sia già stato soppresso.
+        invisible(capture.output(
+          suppressWarnings(
+            data <- rdbnomics::rdb(code)
+          )
+        ))
+        return(data)
+      },
+      error = function(e) {
+        # Questo blocco cattura l'ERRORE e stampa il tuo warning personalizzato
+        country_iso <- stringr::str_sub(code, -3)
+        country_name <- tryCatch(
+          countrycode::countrycode(country_iso, "iso3c", "country.name.en"),
+          error = function(e) country_iso
+        )
+
+        countries_with_missing_data <<- c(countries_with_missing_data, country_iso)
+
+        # Stampa il tuo warning personalizzato
+        warning(paste("Data series not available:", country_name), call. = FALSE, immediate. = TRUE)
+        return(NULL)
+      }
+    )
+  })
+
+  data_raw <- do.call(rbind, results[!sapply(results, is.null)])
+
+  # Se data_raw è NULL, ritorna NA per value e last_yr
+
+  if (is.null(data_raw) || nrow(data_raw) == 0) {
+    return(list(value = NA, last_yr = NA))
+  }
 
   data_raw$original_period <- as.numeric(data_raw$original_period)
 
@@ -268,11 +319,11 @@ if (agg == "no") {
 
     growth_rate <- compute_growth_rate(data_raw$value, avg = TRUE) # average growth rate of the variable
 
-    list(growth_rate = growth_rate, last_yr = last_yr)
+    list(growth_rate = growth_rate, last_yr = last_yr, missing_countries = countries_with_missing_data)
 
   } else {
 
-    list(value = value, last_yr = last_yr)
+    list(value = value, last_yr = last_yr, missing_countries = countries_with_missing_data)
 
   }
 

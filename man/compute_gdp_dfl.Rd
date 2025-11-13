@@ -7,7 +7,7 @@
 \url{https://db.nomics.world/}
 }
 \usage{
-compute_gdp_dfl(country_iso = "EMU", base_yr, ref_yr)
+compute_gdp_dfl(country_iso = "EMU", base_yr, ref_yr, growth_rate_int = 20)
 }
 \arguments{
 \item{country_iso}{A character string. The ISO code (3 digits) of the country of interest.

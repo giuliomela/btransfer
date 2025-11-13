@@ -122,11 +122,54 @@ btransfer <- function(study_site = "European Union", policy_site, study_yr = 201
                                   var = "gni_capita",
                                   growth_rate_int = avg_h)
 
+  #countries with missing data
+  all_missing_countries <- unique(c(
+    gdp_study$missing_countries,
+    gdp_policy$missing_countries,
+    gni_policy$missing_countries
+  ))
 
-  epsilon <- compute_epsilon(gni_policy[["value"]])
+  if (length(all_missing_countries) > 0) {
 
+    # converting ISO codes in country names
+    missing_country_names <- countrycode::countrycode(all_missing_countries,
+                                                      "iso3c", "country.name.en")
 
+    # Removing NAs is translation fails
+    missing_country_names <- na.omit(missing_country_names)
 
+    warning_message <- paste0(
+      "The aggregate has been calculated exluding the following countries due to missing data:\n",
+      paste(missing_country_names, collapse = ", ")
+    )
+
+    warning(warning_message, call. = FALSE, immediate. = TRUE)
+  }
+
+  # Removing missing countries elements to simplify the code
+  gdp_study$missing_countries <- NULL
+  gdp_policy$missing_countries <- NULL
+  gni_policy$missing_countries <- NULL
+
+  #computing epsilon
+
+  epsilon_base_yr <- btransfer::income_classification$year[1]
+
+  gni_current_yr <- policy_yr
+
+  dfl_gni_fct <- # US GDP deflator to convert nominal GNI into policy year price levels
+    compute_gdp_dfl(
+      study_currency = "USD",
+      base_yr = gni_current_yr,
+      ref_yr = epsilon_base_yr
+    )
+
+  # adjusting GNI per capita
+
+  adjusted_gni_policy <-
+    gni_policy[["value"]] * dfl_gni_fct
+
+  epsilon <- compute_epsilon(adjusted_gni_policy)
 
   last_yr <- gdp_study[["last_yr"]]
 
