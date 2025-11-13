@@ -159,7 +159,6 @@ btransfer <- function(study_site = "European Union", policy_site, study_yr = 201
 
   dfl_gni_fct <- # US GDP deflator to convert nominal GNI into policy year price levels
     compute_gdp_dfl(
-      study_currency = "USD",
       base_yr = gni_current_yr,
       ref_yr = epsilon_base_yr
     )
@@ -181,8 +180,7 @@ btransfer <- function(study_site = "European Union", policy_site, study_yr = 201
 
   #if (ref_yr > last_yr) stop ("Parameter 'ref_yr' cannot be a year into the future")
 
-  dfl_fct <- compute_gdp_dfl(study_currency,
-                             base_yr = study_yr,
+  dfl_fct <- compute_gdp_dfl(base_yr = study_yr,
                              ref_yr = ref_yr)
 
   # computing exchange rate
