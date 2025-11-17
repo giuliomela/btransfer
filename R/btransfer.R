@@ -74,9 +74,9 @@
 #' agg_policy = "yes", policy_currency = "EMU")
 #' btransfer(study_site = "Italia", policy_site = c("Francia", "Germany", "Portugal"),
 #' policy_yr = 2020, ref_yr = 2020, agg_policy = "row", policy_currency = "USA")
-btransfer <- function(study_site = "European Union", policy_site, study_yr = 2016, policy_yr,
-                      ref_yr, agg_policy = "no",
-                      study_currency = "EMU", policy_currency, avg_h = 20) {
+btransfer <- function(study_site = "European Union", policy_site = "World", study_yr = 2021, policy_yr = 2021,
+                      ref_yr = 2021, agg_policy = "no",
+                      study_currency = "EMU", policy_currency = "EMU", avg_h = 20) {
 
   agg_countries <- unique(btransfer::agg_composition$code)
 
@@ -122,6 +122,8 @@ btransfer <- function(study_site = "European Union", policy_site, study_yr = 201
                                   var = "gni_capita",
                                   growth_rate_int = avg_h)
 
+  if (agg_policy == "yes") {
+
   #countries with missing data
   all_missing_countries <- unique(c(
     gdp_study$missing_countries,
@@ -135,7 +137,7 @@ btransfer <- function(study_site = "European Union", policy_site, study_yr = 201
     missing_country_names <- countrycode::countrycode(all_missing_countries,
                                                       "iso3c", "country.name.en")
 
-    # Removing NAs is translation fails
+    # Removing NAs if translation fails
     missing_country_names <- na.omit(missing_country_names)
 
     warning_message <- paste0(
@@ -146,10 +148,7 @@ btransfer <- function(study_site = "European Union", policy_site, study_yr = 201
     warning(warning_message, call. = FALSE, immediate. = TRUE)
   }
 
-  # Removing missing countries elements to simplify the code
-  gdp_study$missing_countries <- NULL
-  gdp_policy$missing_countries <- NULL
-  gni_policy$missing_countries <- NULL
+  }
 
   #computing epsilon
 
@@ -159,6 +158,7 @@ btransfer <- function(study_site = "European Union", policy_site, study_yr = 201
 
   dfl_gni_fct <- # US GDP deflator to convert nominal GNI into policy year price levels
     compute_gdp_dfl(
+      country_iso = "USA",
       base_yr = gni_current_yr,
       ref_yr = epsilon_base_yr
     )
