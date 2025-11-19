@@ -22,7 +22,7 @@ agg_composition <- readxl::read_excel(here::here("data-raw/agg_composition.xlsx"
 
 # GDP capita (constant international dollars)
 
-# Wdition of the WEO IMF
+# Edition of the WEO IMF
 
 weo_edition <- "WEO:2022-10"
 

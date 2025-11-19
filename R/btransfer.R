@@ -126,23 +126,15 @@ btransfer <- function(study_site = "European Union", policy_site = "World", stud
 
   #countries with missing data
   all_missing_countries <- unique(c(
-    gdp_study$missing_countries,
     gdp_policy$missing_countries,
     gni_policy$missing_countries
   ))
 
   if (length(all_missing_countries) > 0) {
 
-    # converting ISO codes in country names
-    missing_country_names <- countrycode::countrycode(all_missing_countries,
-                                                      "iso3c", "country.name.en")
-
-    # Removing NAs if translation fails
-    missing_country_names <- na.omit(missing_country_names)
-
     warning_message <- paste0(
-      "The aggregate has been calculated exluding the following countries due to missing data:\n",
-      paste(missing_country_names, collapse = ", ")
+      "The policy aggregate has been calculated exluding the following countries due to missing data:\n",
+      paste(all_missing_countries, collapse = ", ")
     )
 
     warning(warning_message, call. = FALSE, immediate. = TRUE)
